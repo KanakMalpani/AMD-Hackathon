@@ -1,4 +1,16 @@
-const API_BASE = "http://localhost:8001";
+const DEFAULT_API_BASE = "http://localhost:8001";
+
+function trimTrailingSlash(value: string): string {
+  return value.replace(/\/+$/, "");
+}
+
+function getApiBase(): string {
+  const envBase = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (envBase) return trimTrailingSlash(envBase);
+  return DEFAULT_API_BASE;
+}
+
+const API_BASE = getApiBase();
 
 export async function generateStartup(idea: string): Promise<string> {
   const res = await fetch(`${API_BASE}/generate-startup`, {
