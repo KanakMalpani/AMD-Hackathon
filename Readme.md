@@ -1,71 +1,100 @@
-# 🚀 Autonomous Startup-in-a-Box (AMD Edition)
-**Built for the AMD Developer Hackathon**
+<div align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg" alt="AMD Logo" width="150"/>
+  <h1>🚀 Autonomous Startup-in-a-Box</h1>
+  <p><strong>Powered by AMD Instinct™ & Radeon™ GPUs via ROCm</strong></p>
+  
+  [![Hackathon](https://img.shields.io/badge/AMD-Developer_Hackathon-ED1C24?style=for-the-badge&logo=amd&logoColor=white)](https://www.amd.com/en/developer.html)
+  [![React](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+  [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+  [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+</div>
 
-Autonomous Startup-in-a-Box is a high-concurrency, multi-agent AI system powered by **AMD Instinct/Radeon GPUs** and **ROCm**. It transforms a simple idea into a structured startup plan by orchestrating 6 specialized AI agents (CEO, PM, Engineer, Marketing, Finance, Critic) that collaborate in parallel to build your next venture.
+<br/>
+
+> **Autonomous Startup-in-a-Box** is a high-concurrency, multi-agent AI system that transforms a simple idea into a structured startup plan. By orchestrating **6 specialized AI agents** that collaborate in parallel, it builds your next venture in seconds—showcasing the raw compute power of AMD hardware.
 
 ---
 
-## 🧠 The "AMD Wow Factor"
+## ✨ The "AMD Wow Factor"
+
 Traditional agentic workflows are often slow and sequential. This project leverages **AMD's high-memory bandwidth** and **ROCm-optimized vLLM serving** to enable two showstopper features:
-1. **The Hardware Drag Race (Interactive Benchmark)**: The UI features a split-screen benchmark mode. Watch a simulated standard "Cloud CPU" struggle to generate a single strategy while the **AMD Instinct / ROCm** lane blitzes through the entire 6-agent company formation in seconds.
-2. **Instant Live Render**: Because inference is so fast, the Engineer agent doesn't just write a plan; it generates raw, functional HTML/Tailwind code. The dashboard instantly renders the functional Landing Page inside a secure iframe the second the simulation finishes.
+
+🏎️ **The Hardware Drag Race (Interactive Benchmark)**  
+Watch a simulated standard "Cloud CPU" struggle to generate a single strategy while the **AMD Instinct / ROCm** lane blitzes through the entire 6-agent company formation in seconds.
+
+⚡ **Instant Live Render**  
+Because inference is so fast, the Engineer agent doesn't just write a plan; it generates raw, functional HTML/Tailwind code. The dashboard instantly renders the functional Landing Page inside a secure iframe the second the simulation finishes.
 
 ---
 
 ## 🏗️ System Architecture
 
-### 1. The Brain (AMD Compute Stack)
+### 🧠 1. The Brain (AMD Compute Stack)
 - **Model**: Qwen-72B / Llama-3 (ROCm optimized)
-- **Serving**: `vLLM` on AMD Instinct™ or Radeon™ GPUs.
-- **Acceleration**: Full ROCm stack integration for extreme parallel inference.
+- **Serving**: `vLLM` on AMD Instinct™ or Radeon™ GPUs
+- **Acceleration**: Full ROCm stack integration for extreme parallel inference
 
-### 2. The Orchestrator (Backend)
+### ⚙️ 2. The Orchestrator (Backend)
 - **Framework**: FastAPI + CrewAI
-- **Logic**: A 6-agent sequential pipeline with strict regex-enforced code generation.
+- **Logic**: A 6-agent sequential pipeline with strict regex-enforced code generation
 
-### 3. The Dashboard (Frontend)
-- **Framework**: React + TanStack Router + Tailwind
-- **Visuals**: Split-screen CPU vs GPU benchmarking, real-time activity feeds, and an embedded `<iframe>` for live code rendering.
+### 💻 3. The Dashboard (Frontend)
+- **Framework**: React + TanStack Router + Tailwind CSS
+- **Visuals**: Split-screen CPU vs GPU benchmarking, real-time activity feeds, and embedded `<iframe>` for live code rendering
 
 ---
 
-## 🧩 The 6-Agent Pipeline
-1. **CEO**: Sets the vision and orchestrates the team.
-2. **Product Manager**: Defines features and MVP scope.
-3. **Engineer**: Architectures the tech stack and generates code scaffolds.
-4. **Marketing**: Crafts the GTM strategy and social copy.
-5. **Finance**: Projects revenue and validates business viability.
-6. **Critic**: Identifies risks and forces high-quality iteration.
+## 🤝 The 6-Agent Pipeline
+
+Our autonomous corporate team works in parallel to bring ideas to life:
+
+| Agent | Role | Responsibilities |
+| :--- | :--- | :--- |
+| 👔 **CEO** | Strategic Leader | Sets the vision, breaks down tasks, and orchestrates the team. |
+| 📋 **Product Manager** | Product Thinker | Defines features, creates roadmaps, and structures the MVP. |
+| 💻 **Engineer** | Developer | Architects the tech stack and generates functional code scaffolds. |
+| 📈 **Marketing** | Growth Strategist | Crafts the GTM strategy, campaigns, and social media copy. |
+| 💰 **Finance** | Analyst | Projects revenue, estimates costs, and validates business viability. |
+| 🧐 **Critic** | Challenger | Identifies risks, forces high-quality iteration, and ensures robustness. |
 
 ---
 
 ## 🚀 Quick Start
 
-### Backend (Python)
+Get the multi-agent system running locally.
+
+### 🐍 Backend (Python)
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python main.py
 ```
-*Note: Set `USE_MOCK = False` in `main.py` and point to your AMD vLLM IP to use real hardware.*
+> **Note:** Set `USE_MOCK = False` in `main.py` and point to your AMD vLLM IP to use real hardware.
 
-### Frontend (React)
+### ⚛️ Frontend (React)
 ```bash
+cd frontend  # or wherever the frontend is located
 npm install
 npm run dev
 ```
 
 ---
 
-## 🎬 Demo Experience
-Watch the agents collaborate live. The dashboard provides:
-- **AMD Compute Panel**: Real-time metrics showing GPU acceleration status.
-- **Agent Activity Feed**: Transcripts of the AI agents debating your idea.
-- **Output Tabs**: High-fidelity plans for Code, Marketing, and Financials.
+## 🎬 The Demo Experience
+
+Experience the agents collaborating live. The dynamic dashboard provides:
+- 📊 **AMD Compute Panel**: Real-time metrics showing GPU acceleration status.
+- 💬 **Agent Activity Feed**: Live transcripts of the AI agents debating and building your idea.
+- 📑 **Output Tabs**: High-fidelity plans for Code, Marketing, and Financials.
 
 ---
 
 ## 🏁 Conclusion
-Most AI tools generate text. This system operationalizes ideas using the raw power of AMD hardware. By combining a structured multi-agent pipeline with ROCm-accelerated inference, we've built the fastest path from "Idea" to "Execution."
+
+Most AI tools just generate text. This system operationalizes ideas using the raw power of AMD hardware. By combining a structured multi-agent pipeline with ROCm-accelerated inference, we've built the **fastest path from "Idea" to "Execution."**
+
+<div align="center">
+  <p>Built with ❤️ for the AMD Developer Hackathon</p>
+</div>
