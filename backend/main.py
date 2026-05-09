@@ -1,203 +1,519 @@
-from fastapi import FastAPI, BackgroundTasks
-from pydantic import BaseModel
-from crewai import Agent, Task, Crew, Process
-from langchain_openai import ChatOpenAI
+import json
 import os
+import time
 import uuid
+from typing import Any
+
+from fastapi import BackgroundTasks, FastAPI
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel
+
 
 app = FastAPI(title="Autonomous Startup-in-a-Box API")
 
-# =====================================================================
-# Toggle this to False when your AMD server is ready!
-USE_MOCK = True
 
-# Initialize the LLM (Required for Agent validation, even if mocked later)
-# TO CONNECT REAL AMD HARDWARE:
-# 1. Start vLLM on your AMD server: `python -m vllm.entrypoints.openai.api_server --model <model_path>`
-# 2. Update base_url to "http://<AMD_SERVER_IP>:8000/v1"
+USE_MOCK = os.getenv("USE_MOCK", "true").lower() in {"1", "true", "yes"}
+AMD_LLM_BASE_URL = os.getenv("AMD_LLM_BASE_URL", "http://localhost:8000/v1")
+AMD_LLM_MODEL = os.getenv("AMD_LLM_MODEL", "qwen-2.5-7b-instruct")
+AMD_LLM_API_KEY = os.getenv("AMD_LLM_API_KEY", "dummy")
+AMD_LLM_TEMPERATURE = float(os.getenv("AMD_LLM_TEMPERATURE", "0.35"))
+
+
 llm = ChatOpenAI(
-    model="qwen-2.5-7b-instruct", 
-    temperature=0.7,
-    base_url="http://localhost:8000/v1", # Replace with AMD Server IP (e.g. 192.168.1.50)
-    api_key="dummy"
+    model=AMD_LLM_MODEL,
+    temperature=AMD_LLM_TEMPERATURE,
+    base_url=AMD_LLM_BASE_URL,
+    api_key=AMD_LLM_API_KEY,
 )
 
 
-# In-memory dictionary to store job status for the frontend
-jobs = {}
+jobs: dict[str, dict[str, Any]] = {}
 
 
 class StartupRequest(BaseModel):
     idea: str
+    audience: str | None = ""
+    problem: str | None = ""
+    businessModel: str | None = ""
+    mvpScope: str | None = ""
+    tone: str | None = ""
+    constraints: str | None = ""
+    seedContext: str | None = ""
+    keySignals: str | None = ""
+    simulationGoal: str | None = ""
+    amdFocus: str | None = ""
 
-def run_startup_crew(job_id: str, idea: str):
-    """
-    This function runs the CrewAI agents in the background.
-    It maps perfectly to your Readme's execution pipeline.
-    """
-    jobs[job_id] = {"status": "running", "output": None}
-    
-    try:
-        if USE_MOCK:
-            import time
-            time.sleep(2) # Simulate processing
-            result = f"""
-# MOCK STARTUP PLAN: {idea}
 
-## 1. Strategy (CEO)
-Strategic summary of your startup idea. We will disrupt the market by leveraging AI and AMD compute stack.
+def agent_roster() -> list[dict[str, str]]:
+    return [
+        {
+            "name": "CEO Agent",
+            "role": "Strategic Leader",
+            "goal": "Frame the startup thesis, task graph, and execution priorities.",
+            "style": "Decisive, macro, founder-grade.",
+            "deliverable": "Company direction, positioning, and success criteria.",
+        },
+        {
+            "name": "Product Agent",
+            "role": "Product Architect",
+            "goal": "Define the MVP, user journey, and experience wedge.",
+            "style": "Structured, user-obsessed, ruthless on scope.",
+            "deliverable": "MVP plan, flows, and feature sequencing.",
+        },
+        {
+            "name": "Engineer Agent",
+            "role": "Systems Builder",
+            "goal": "Design implementation architecture and a compelling interactive preview.",
+            "style": "Pragmatic, technical, performance-aware.",
+            "deliverable": "Tech stack, system design, and preview HTML.",
+        },
+        {
+            "name": "Marketing Agent",
+            "role": "Growth Strategist",
+            "goal": "Craft narrative, channels, and launch motion.",
+            "style": "Sharp, audience-aware, campaign-minded.",
+            "deliverable": "Launch messaging, channels, and outreach.",
+        },
+        {
+            "name": "Finance Agent",
+            "role": "Business Analyst",
+            "goal": "Pressure-test cost, revenue, and pricing assumptions.",
+            "style": "Analytical, skeptical, model-driven.",
+            "deliverable": "Revenue projection, costs, and monetization logic.",
+        },
+        {
+            "name": "Critic Agent",
+            "role": "World Challenger",
+            "goal": "Attack the plan before the market does.",
+            "style": "Blunt, adversarial, quality-first.",
+            "deliverable": "Failure modes, risks, and iteration path.",
+        },
+    ]
 
-## 2. Product (PM)
-1. Core AI Dashboard
-2. Real-time collaboration
-3. Export to PDF
 
-## 3. Engineering (Engineer)
-FastAPI, React, Tailwind CSS, and vLLM running on AMD ROCm (MI300X optimized).
+def classify_idea(idea: str) -> dict[str, str]:
+    text = idea.lower()
+    if any(token in text for token in ["student", "study", "exam", "campus", "learning"]):
+        return {
+            "segment": "student founders and education-focused builders",
+            "differentiator": "turning chaotic exam or study pressure into an adaptive execution loop",
+            "headline": "Simulate a better path from study stress to daily execution",
+        }
+    if any(token in text for token in ["fitness", "workout", "gym", "diet", "health"]):
+        return {
+            "segment": "fitness newcomers and habit-driven self-improvement users",
+            "differentiator": "making motivation measurable through visible accountability loops",
+            "headline": "Simulate the habit system before shipping the product",
+        }
+    if any(token in text for token in ["creator", "content", "youtube", "instagram", "tiktok", "newsletter"]):
+        return {
+            "segment": "solo creators trying to maintain consistency without burning out",
+            "differentiator": "compressing ideation, packaging, and distribution into one workflow",
+            "headline": "Simulate creator momentum before the content calendar slips",
+        }
+    return {
+        "segment": "founders exploring a fresh startup wedge under uncertainty",
+        "differentiator": "showing the startup as a living system instead of a static business plan",
+        "headline": "Build the startup mirror world before burning real-world time",
+    }
 
-```html
-<!DOCTYPE html>
+
+def build_preview_html(title: str, thesis: str, channels: list[str], score: int) -> str:
+    items = "".join(
+        f'<li class="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-200">{channel}</li>'
+        for channel in channels
+    )
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>{idea} MVP</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>{title} - Autonomous Startup-in-a-Box</title>
 </head>
-<body class="bg-gray-900 text-white font-sans flex items-center justify-center h-screen">
-    <div class="text-center p-10 bg-gray-800 rounded-2xl shadow-2xl max-w-2xl border border-gray-700">
-        <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-700 mb-6">{idea}</h1>
-        <p class="text-lg text-gray-300 mb-8">The fastest way to launch your dream. Powered by AMD Instinct.</p>
-        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105">Get Early Access</button>
+<body class="min-h-screen bg-[#050816] text-white">
+  <main class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16">
+    <div class="inline-flex w-fit items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-red-200">
+      AMD Instinct Runtime
+      <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.8)]"></span>
     </div>
+    <div class="mt-8 grid gap-10 lg:grid-cols-[1.3fr_0.7fr]">
+      <section>
+        <p class="text-sm uppercase tracking-[0.4em] text-zinc-400">Autonomous Startup-in-a-Box</p>
+        <h1 class="mt-4 max-w-4xl text-5xl font-black leading-tight text-white">{title}</h1>
+        <p class="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">{thesis}</p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a class="rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(220,38,38,0.35)]" href="#report">Open simulation report</a>
+          <a class="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-zinc-200" href="#channels">Inspect launch channels</a>
+        </div>
+      </section>
+      <aside class="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+        <div class="text-xs uppercase tracking-[0.3em] text-zinc-400">Readiness Score</div>
+        <div class="mt-3 text-6xl font-black text-emerald-400">{score}</div>
+        <div class="mt-4 h-3 overflow-hidden rounded-full bg-zinc-800">
+          <div class="h-full rounded-full bg-gradient-to-r from-red-500 via-orange-400 to-emerald-400" style="width:{score}%"></div>
+        </div>
+        <p class="mt-6 text-sm leading-7 text-zinc-300">This preview is generated from the agent simulation so the team can pitch a startup world, not just a startup slide.</p>
+      </aside>
+    </div>
+    <section id="channels" class="mt-16">
+      <div class="text-xs uppercase tracking-[0.3em] text-zinc-400">First Wave Distribution</div>
+      <ul class="mt-5 flex flex-wrap gap-3">{items}</ul>
+    </section>
+  </main>
 </body>
-</html>
+</html>"""
+
+
+def build_markdown_report(report: dict[str, Any]) -> str:
+    outputs = report["outputs"]
+    product = outputs["product"]
+    build = outputs["engineering"]
+    marketing = outputs["marketing"]
+    finance = outputs["finance"]
+    critic = outputs["critic"]
+    validation = outputs["validation"]
+
+    def bullet_list(items: list[str]) -> str:
+        return "\n".join(f"- {item}" for item in items)
+
+    return f"""# Autonomous Startup-in-a-Box
+
+## Executive Summary
+{report["executive_summary"]}
+
+## Reality Seed
+- Idea: {report["startup_brief"]["idea"]}
+- Audience: {report["startup_brief"]["audience"]}
+- Core Problem: {report["startup_brief"]["problem"]}
+- Simulation Goal: {report["simulation_world"]["goal"]}
+
+## Validation
+- Market Opportunity: {validation["market_opportunity"]}
+- Why Now: {validation["why_now"]}
+- Differentiation: {validation["differentiation"]}
+- Risks:
+{bullet_list(validation["risks"])}
+
+## Product Blueprint
+- North Star: {product["north_star"]}
+- Core Loop: {product["core_loop"]}
+- MVP Features:
+{bullet_list(product["mvp_features"])}
+
+## Engineering Plan
+- Stack: {", ".join(build["stack"])}
+- Architecture:
+{bullet_list(build["architecture"])}
+
+```html
+{build["preview_html"]}
 ```
 
-## 4. Marketing (Marketing)
-Go-to-market plan focuses on LinkedIn. Tagline: 'Startups at Light Speed'.
+## Launch Strategy
+- Narrative: {marketing["narrative"]}
+- Channels:
+{bullet_list(marketing["channels"])}
 
-## 5. Finance (Finance)
-Projected Year 1 Revenue: $500k. Estimated server costs: $50k.
+## Finance
+- Pricing: {finance["pricing"]}
+- Revenue Logic: {finance["revenue_logic"]}
+- Cost Drivers:
+{bullet_list(finance["cost_drivers"])}
 
-## 6. Critique (Critic)
-The plan is solid, but consider scaling the infrastructure earlier.
+## Critic Review
+- Main Failure Mode: {critic["main_failure_mode"]}
+- Hardest Assumption: {critic["hardest_assumption"]}
+- Fix First:
+{bullet_list(critic["fix_first"])}
 """
-        else:
-            # 1. Define Agents (ONLY for real run)
-            ceo = Agent(
-                role='CEO',
-                goal='Analyze the startup idea and create a high-level execution strategy.',
-                backstory='You are a visionary Silicon Valley CEO who builds billion-dollar companies.',
-                verbose=True,
-                llm=llm
-            )
-            
-            pm = Agent(
-                role='Product Manager',
-                goal='Define the MVP features, roadmap, and core user journey.',
-                backstory='You are a data-driven PM who focuses on core user value and rapid iteration.',
-                verbose=True,
-                llm=llm
-            )
-
-            engineer = Agent(
-                role='Engineer',
-                goal='Outline the technical architecture and tech stack.',
-                backstory='You are a pragmatic 10x developer who builds scalable systems on AMD hardware.',
-                verbose=True,
-                llm=llm
-            )
-            
-            marketing = Agent(
-                role='Marketing Specialist',
-                goal='Create a comprehensive go-to-market strategy and brand positioning.',
-                backstory='You are a growth hacker who knows how to make products go viral.',
-                verbose=True,
-                llm=llm
-            )
-
-            finance = Agent(
-                role='Financial Analyst',
-                goal='Develop revenue models and cost projections for the startup.',
-                backstory='You are a former VC who knows exactly what makes a business profitable.',
-                verbose=True,
-                llm=llm
-            )
-
-            critic = Agent(
-                role='Critical Reviewer',
-                goal='Identify potential flaws in the startup plan and suggest improvements.',
-                backstory='You are a professional skeptic who helps founders avoid common pitfalls.',
-                verbose=True,
-                llm=llm
-            )
-
-            # 2. Define Tasks
-            strategy_task = Task(
-                description=f'Analyze this startup idea: "{idea}". Provide a strategic summary.',
-                expected_output='A strategic summary of the startup.',
-                agent=ceo
-            )
-            
-            product_task = Task(
-                description='Based on the CEO strategy, list the top 3 core MVP features.',
-                expected_output='A list of 3 core MVP features.',
-                agent=pm
-            )
-            
-            engineering_task = Task(
-                description='Recommend a precise tech stack and system architecture for the MVP. AND crucially, write a complete, raw HTML file using Tailwind CSS via CDN for the startup landing page. Wrap the code in ```html blocks.',
-                expected_output='A tech stack overview and a raw, functional HTML/Tailwind code block for a landing page.',
-                agent=engineer
-            )
-
-            marketing_task = Task(
-                description='Create a go-to-market plan and suggest a tagline for the product.',
-                expected_output='A marketing strategy and brand tagline.',
-                agent=marketing
-            )
-
-            finance_task = Task(
-                description='Provide a basic 12-month revenue projection and cost estimate.',
-                expected_output='A financial projection summary.',
-                agent=finance
-            )
-
-            criticism_task = Task(
-                description='Review the entire plan (Strategy, Product, Tech, Marketing, Finance) and provide 3 critical improvements.',
-                expected_output='A list of 3 critical improvements and risk mitigations.',
-                agent=critic
-            )
-
-            # 3. Create and Run the Crew
-            crew = Crew(
-                agents=[ceo, pm, engineer, marketing, finance, critic],
-                tasks=[strategy_task, product_task, engineering_task, marketing_task, finance_task, criticism_task],
-                process=Process.sequential
-            )
-            # Kickoff the real pipeline on AMD compute
-            result = crew.kickoff()
-        
-        # Save output for frontend
-        jobs[job_id] = {"status": "completed", "output": str(result)}
 
 
-        
-    except Exception as e:
-        jobs[job_id] = {"status": "failed", "error": str(e)}
+def build_mock_report(request: StartupRequest) -> dict[str, Any]:
+    idea = request.idea.strip() or "Autonomous founder assistant"
+    tone = request.tone.strip() or "Bold, cinematic, technically credible"
+    audience = request.audience.strip() or classify_idea(idea)["segment"]
+    problem = request.problem.strip() or "Founders move from inspiration to execution too slowly."
+    business_model = request.businessModel.strip() or "Usage-based premium workspace with team tier."
+    mvp_scope = request.mvpScope.strip() or "Simulation brief, multi-agent run, preview page, and launch report."
+    seed_context = request.seedContext.strip() or "No extra dossier supplied. Use the idea itself as the reality seed."
+    key_signals = request.keySignals.strip() or "AI-native workflows, shrinking startup cycles, higher founder expectations."
+    simulation_goal = request.simulationGoal.strip() or "Pressure-test whether the startup can earn attention, retention, and revenue."
+    amd_focus = request.amdFocus.strip() or "Use AMD GPUs for low-latency inference, visible concurrency, and demo impact."
+
+    profile = classify_idea(idea)
+    title = "Autonomous Startup-in-a-Box"
+    readiness = 88
+    launch_channels = ["Founder communities", "LinkedIn launch thread", "Short-form demo video", "Hackathon stage demo"]
+    preview_html = build_preview_html(title, profile["headline"], launch_channels, readiness)
+
+    return {
+        "title": title,
+        "readiness_score": readiness,
+        "executive_summary": (
+            f"{idea} becomes more compelling when framed as a live startup world simulation: "
+            "the user submits a startup premise, agents model the company from multiple disciplines, "
+            "and AMD-backed inference makes their collaboration visible in real time."
+        ),
+        "startup_brief": {
+            "idea": idea,
+            "audience": audience,
+            "problem": problem,
+            "business_model": business_model,
+            "tone": tone,
+            "constraints": request.constraints.strip() or "Preserve AMD branding, ship reliably on the web, and stay hackathon-demo friendly.",
+            "seed_context": seed_context,
+            "key_signals": key_signals,
+            "amd_focus": amd_focus,
+        },
+        "simulation_world": {
+            "goal": simulation_goal,
+            "hypothesis": f"If {idea} is positioned around {profile['differentiator']}, it can win attention quickly.",
+            "market_forces": [
+                "Users expect instant strategy synthesis, not static documents.",
+                "Founders trust products more when they can inspect the agent reasoning process.",
+                "Infrastructure stories land better when the hardware advantage is visible.",
+            ],
+            "intervention_levers": [
+                "Tighten the target user wedge.",
+                "Reduce the MVP to one unforgettable loop.",
+                "Use AMD throughput as part of the narrative, not only the implementation.",
+            ],
+            "simulation_modes": [
+                "Baseline founder run",
+                "Aggressive GTM run",
+                "Capital-efficient survival run",
+            ],
+        },
+        "agents": agent_roster(),
+        "outputs": {
+            "validation": {
+                "market_opportunity": f"{audience} already feel the pain of {problem.lower()}",
+                "why_now": "AI agents are now credible enough to turn startup planning into an inspectable runtime experience.",
+                "differentiation": (
+                    "This product does not just answer questions. It stages a living company simulation "
+                    "and exposes the work of each specialist agent."
+                ),
+                "risks": [
+                    "Users may treat it like a novelty if the report is shallow.",
+                    "The demo can feel fake if the runtime story is not grounded in AMD compute.",
+                    "Too many panels can dilute the startup narrative.",
+                ],
+            },
+            "product": {
+                "north_star": "Give founders a startup mirror world they can interrogate before they commit real time and money.",
+                "core_loop": "Input idea -> generate world seed -> simulate six specialist agents -> inspect report -> iterate.",
+                "mvp_features": [
+                    "Startup brief composer with reality-seed fields",
+                    "Visible multi-agent execution timeline",
+                    "Agent roster with responsibilities and outputs",
+                    "Interactive launch report with live preview",
+                    "AMD runtime credibility panel",
+                ],
+                "persona_tracks": [
+                    "Founder / builder",
+                    "Product manager",
+                    "Investor or hackathon judge",
+                ],
+                "first_release_scope": mvp_scope,
+            },
+            "engineering": {
+                "stack": [
+                    "React + TanStack Router",
+                    "FastAPI orchestration backend",
+                    "OpenAI-compatible AMD model endpoint",
+                    "Vercel frontend deployment",
+                ],
+                "architecture": [
+                    "Frontend runs the cinematic simulation shell and polling loop.",
+                    "Backend manages job lifecycle, prompt packaging, and report generation.",
+                    "AMD model endpoint is injected by environment variables for hackathon or cloud deployment.",
+                    "Mock mode remains available so the demo can still run without live compute.",
+                ],
+                "preview_html": preview_html,
+            },
+            "marketing": {
+                "narrative": "Rehearse the future of a startup before spending the present on it.",
+                "channels": launch_channels,
+                "hook_lines": [
+                    "Six AI agents, one startup, one visible simulation.",
+                    "This is not a chatbot. It is a company in a sandbox.",
+                    "AMD GPUs make the startup think in parallel.",
+                ],
+                "judge_pitch": (
+                    "We turned startup planning into a high-fidelity, inspectable simulation where AMD acceleration is part of the user experience."
+                ),
+            },
+            "finance": {
+                "pricing": "Free demo tier, pro founder workspace, and team collaboration tier.",
+                "revenue_logic": "Charge for deeper runs, exports, persistent workspaces, and team scenarios.",
+                "cost_drivers": [
+                    "GPU inference tokens during long-form simulations",
+                    "Storage of reports and generated previews",
+                    "Future integrations for data ingestion and deployment",
+                ],
+                "first_year": "Strong demo-led adoption if the wow moment converts into recurring founder workflows.",
+            },
+            "critic": {
+                "main_failure_mode": "The product looks flashy but does not create repeat behavior after the first run.",
+                "hardest_assumption": "Founders will return for iteration, not only for a one-time report.",
+                "fix_first": [
+                    "Make every run produce a shareable artifact worth revisiting.",
+                    "Keep the visible agent process tied to useful decisions, not cosmetic animation.",
+                    "Use AMD performance metrics as proof of system quality and scale.",
+                ],
+            },
+        },
+    }
+
+
+def build_prompt_for_llm(request: StartupRequest) -> str:
+    payload = {
+        "idea": request.idea,
+        "audience": request.audience,
+        "problem": request.problem,
+        "business_model": request.businessModel,
+        "mvp_scope": request.mvpScope,
+        "tone": request.tone,
+        "constraints": request.constraints,
+        "seed_context": request.seedContext,
+        "key_signals": request.keySignals,
+        "simulation_goal": request.simulationGoal,
+        "amd_focus": request.amdFocus,
+    }
+    schema = {
+        "title": "string",
+        "readiness_score": 0,
+        "executive_summary": "string",
+        "startup_brief": {
+            "idea": "string",
+            "audience": "string",
+            "problem": "string",
+            "business_model": "string",
+            "tone": "string",
+            "constraints": "string",
+            "seed_context": "string",
+            "key_signals": "string",
+            "amd_focus": "string",
+        },
+        "simulation_world": {
+            "goal": "string",
+            "hypothesis": "string",
+            "market_forces": ["string"],
+            "intervention_levers": ["string"],
+            "simulation_modes": ["string"],
+        },
+        "agents": [
+            {
+                "name": "string",
+                "role": "string",
+                "goal": "string",
+                "style": "string",
+                "deliverable": "string",
+            }
+        ],
+        "outputs": {
+            "validation": {
+                "market_opportunity": "string",
+                "why_now": "string",
+                "differentiation": "string",
+                "risks": ["string"],
+            },
+            "product": {
+                "north_star": "string",
+                "core_loop": "string",
+                "mvp_features": ["string"],
+                "persona_tracks": ["string"],
+                "first_release_scope": "string",
+            },
+            "engineering": {
+                "stack": ["string"],
+                "architecture": ["string"],
+                "preview_html": "full html document string",
+            },
+            "marketing": {
+                "narrative": "string",
+                "channels": ["string"],
+                "hook_lines": ["string"],
+                "judge_pitch": "string",
+            },
+            "finance": {
+                "pricing": "string",
+                "revenue_logic": "string",
+                "cost_drivers": ["string"],
+                "first_year": "string",
+            },
+            "critic": {
+                "main_failure_mode": "string",
+                "hardest_assumption": "string",
+                "fix_first": ["string"],
+            },
+        },
+    }
+    return (
+        "You are the orchestration brain for an AMD hackathon product called "
+        "'Autonomous Startup-in-a-Box'. Generate a powerful, credible startup simulation report. "
+        "The response must be valid JSON only, with no markdown fences or commentary.\n\n"
+        f"Request payload:\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
+        f"JSON schema shape:\n{json.dumps(schema, ensure_ascii=False, indent=2)}\n\n"
+        "Requirements:\n"
+        "- Preserve AMD branding and mention AMD compute advantage naturally.\n"
+        "- Make the product feel like a visible multi-agent company simulator.\n"
+        "- Keep claims ambitious but believable for a hackathon.\n"
+        "- preview_html must be a complete responsive HTML document using Tailwind CDN.\n"
+        "- readiness_score must be between 60 and 96.\n"
+        "- All strings should be concise and high-signal.\n"
+    )
+
+
+def generate_report(request: StartupRequest) -> dict[str, Any]:
+    if USE_MOCK:
+        return build_mock_report(request)
+
+    prompt = build_prompt_for_llm(request)
+    response = llm.invoke(prompt)
+    content = response.content if isinstance(response.content, str) else str(response.content)
+    data = json.loads(content)
+    return data
+
+
+def run_startup_simulation(job_id: str, request: StartupRequest) -> None:
+    jobs[job_id] = {"status": "running", "report": None, "output": None}
+    try:
+        if USE_MOCK:
+            time.sleep(2)
+        report = generate_report(request)
+        output = build_markdown_report(report)
+        jobs[job_id] = {
+            "status": "completed",
+            "report": report,
+            "output": output,
+        }
+    except Exception as exc:
+        jobs[job_id] = {"status": "failed", "error": str(exc)}
+
 
 @app.post("/generate-startup")
 async def generate_startup(request: StartupRequest, background_tasks: BackgroundTasks):
     job_id = str(uuid.uuid4())
-    # Run the heavy agent process in the background so the API doesn't block
-    background_tasks.add_task(run_startup_crew, job_id, request.idea)
-    return {"job_id": job_id, "message": "Agents deployed to AMD compute cluster."}
+    background_tasks.add_task(run_startup_simulation, job_id, request)
+    return {
+        "job_id": job_id,
+        "message": "Startup simulation initiated on the AMD orchestration layer.",
+        "runtime": {
+            "mock_mode": USE_MOCK,
+            "model": AMD_LLM_MODEL,
+            "base_url": AMD_LLM_BASE_URL,
+        },
+    }
+
 
 @app.get("/status/{job_id}")
 async def get_status(job_id: str):
     return jobs.get(job_id, {"status": "not found"})
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8001)

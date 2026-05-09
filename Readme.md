@@ -93,6 +93,31 @@ Example local env:
 VITE_API_BASE_URL=http://localhost:8001
 ```
 
+### AMD Runtime Configuration
+This build now supports a richer startup-world simulation flow inspired by MiroFish while preserving the AMD hackathon branding.
+
+Use these environment variables for the backend:
+```bash
+USE_MOCK=true
+AMD_LLM_BASE_URL=http://localhost:8000/v1
+AMD_LLM_MODEL=qwen-2.5-7b-instruct
+AMD_LLM_API_KEY=your_api_key
+AMD_LLM_TEMPERATURE=0.35
+```
+
+To connect to AMD-hosted model APIs after the demo shell is ready:
+- deploy or run an OpenAI-compatible endpoint on AMD infrastructure
+- set `USE_MOCK=false`
+- point `AMD_LLM_BASE_URL` to that endpoint
+- set `AMD_LLM_MODEL` to the served model name
+- keep `VITE_API_BASE_URL` pointed at the FastAPI backend that fronts the simulation
+
+The frontend now expects the backend to return a structured simulation report with:
+- startup brief
+- simulation world and agent roster
+- validation, product, engineering, launch, finance, and critic outputs
+- live preview HTML for the generated startup artifact
+
 ---
 
 ## 🎬 The Demo Experience

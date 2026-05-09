@@ -7,7 +7,7 @@ import { store, useStore } from "@/lib/app-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/projects/$projectId/settings")({
-  head: () => ({ meta: [{ title: "Startup Settings — LaunchMyIdea AI" }] }),
+  head: () => ({ meta: [{ title: "Startup Settings - Autonomous Startup-in-a-Box" }] }),
   component: ProjectSettingsPage,
 });
 
@@ -153,7 +153,7 @@ function ProjectSettingsPage() {
                 <button onClick={() => setConfirm(false)} className="text-weak hover:text-foreground"><X className="h-4 w-4" /></button>
               </div>
               <p className="text-sm text-muted-foreground">
-                "{project.title}" and all its mock outputs will be permanently removed.
+                "{project.title}" and all its simulation outputs will be permanently removed.
               </p>
               <div className="mt-5 flex justify-end gap-2">
                 <button onClick={() => setConfirm(false)} className="rounded-lg border px-3 py-2 text-xs" style={{ background: "#181818", borderColor: "#2A2A2A" }}>Cancel</button>

@@ -8,7 +8,7 @@ import { useStore } from "@/lib/app-store";
 import { buildOutputs, personaFor } from "@/lib/mock-outputs";
 
 export const Route = createFileRoute("/_app/projects/$projectId/statistics")({
-  head: () => ({ meta: [{ title: "Insights — LaunchMyIdea" }] }),
+  head: () => ({ meta: [{ title: "Insights - Autonomous Startup-in-a-Box" }] }),
   component: StatisticsPage,
 });
 

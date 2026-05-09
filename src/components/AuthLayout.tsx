@@ -1,6 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Rocket } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 export function AuthLayout({
@@ -16,14 +16,11 @@ export function AuthLayout({
 }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center px-4 py-16">
-
-      {/* subtle orb */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          background:
-            "radial-gradient(circle, rgba(255,45,45,0.18), transparent 60%)",
+          background: "radial-gradient(circle, rgba(255,45,45,0.18), transparent 60%)",
           filter: "blur(20px)",
         }}
         animate={{ scale: [1, 1.05, 1], opacity: [0.7, 1, 0.7] }}
@@ -34,14 +31,11 @@ export function AuthLayout({
         to="/"
         className="absolute left-6 top-6 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
-        <span
-          className="grid h-7 w-7 place-items-center rounded-md"
-          style={{ background: "#FF2D2D" }}
-        >
+        <span className="grid h-7 w-7 place-items-center rounded-md" style={{ background: "#FF2D2D" }}>
           <Rocket className="h-3.5 w-3.5 text-white" />
         </span>
         <span className="font-display font-semibold">
-          LaunchMyIdea<span className="text-primary"> AI</span>
+          Autonomous Startup<span className="text-primary"> Box</span>
         </span>
       </Link>
 
@@ -53,8 +47,7 @@ export function AuthLayout({
         style={{
           background: "rgba(17,17,17,0.78)",
           borderColor: "#2A2A2A",
-          boxShadow:
-            "0 0 60px rgba(255,45,45,0.12), 0 20px 60px rgba(0,0,0,0.5)",
+          boxShadow: "0 0 60px rgba(255,45,45,0.12), 0 20px 60px rgba(0,0,0,0.5)",
         }}
       >
         <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>

@@ -26,7 +26,7 @@ export function Navbar() {
             <Rocket className="h-4 w-4 text-white" />
           </span>
           <span className="font-display text-lg font-semibold tracking-tight">
-            LaunchMyIdea<span className="text-primary"> AI</span>
+            Autonomous Startup<span className="text-primary"> Box</span>
           </span>
         </Link>
 
@@ -35,7 +35,7 @@ export function Navbar() {
             <li key={l.to}>
               <Link
                 to={l.to}
-                className="story-link text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="story-link text-sm text-muted-foreground transition-colors hover:text-foreground"
                 activeProps={{ className: "story-link text-sm text-foreground" }}
               >
                 {l.label}
@@ -47,7 +47,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Link to="/signup">
             <AnimatedButton icon={<Rocket className="h-4 w-4" />}>
-              Get Started
+              Enter Runtime
             </AnimatedButton>
           </Link>
         </div>

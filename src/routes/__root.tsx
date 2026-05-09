@@ -6,13 +6,13 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { BackgroundFX } from "@/components/BackgroundFX";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Toaster } from "sonner";
-import { useRouterState } from "@tanstack/react-router";
 
 function NotFoundComponent() {
   return (
@@ -21,7 +21,7 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <div className="mt-6">
           <Link
@@ -44,7 +44,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          This page didn&apos;t load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
@@ -76,22 +76,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Frontend" },
-      { name: "description", content: "Idea Ignition is a premium, dark-themed startup launch platform that transforms raw concepts into structured, execution-ready business packages." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Frontend" },
-      { property: "og:description", content: "Idea Ignition is a premium, dark-themed startup launch platform that transforms raw concepts into structured, execution-ready business packages." },
+      { title: "Autonomous Startup-in-a-Box" },
+      {
+        name: "description",
+        content:
+          "A visible multi-agent startup simulator that validates ideas, builds an MVP plan, drafts launch strategy, and demonstrates AMD-powered AI execution.",
+      },
+      { name: "author", content: "AMD Hackathon Team" },
+      { property: "og:title", content: "Autonomous Startup-in-a-Box" },
+      {
+        property: "og:description",
+        content:
+          "A visible multi-agent startup simulator that validates ideas, builds an MVP plan, drafts launch strategy, and demonstrates AMD-powered AI execution.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Frontend" },
-      { name: "twitter:description", content: "Idea Ignition is a premium, dark-themed startup launch platform that transforms raw concepts into structured, execution-ready business packages." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4e922870-20e5-48b8-9996-b9600db708f7/id-preview-efd242fe--040fdb7a-b317-4f5d-8a40-68f223ed195f.lovable.app-1778162979935.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4e922870-20e5-48b8-9996-b9600db708f7/id-preview-efd242fe--040fdb7a-b317-4f5d-8a40-68f223ed195f.lovable.app-1778162979935.png" },
+      { name: "twitter:title", content: "Autonomous Startup-in-a-Box" },
+      {
+        name: "twitter:description",
+        content:
+          "Watch specialist AI agents turn a startup idea into validation, product scope, launch strategy, finance logic, and an AMD runtime story.",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",

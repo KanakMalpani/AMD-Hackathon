@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 
 const STEPS = [
-  "Capturing idea…",
-  "Mapping opportunity…",
-  "Validating market…",
-  "Generating launch package…",
-  "Running critic review…",
-  "Calculating launch readiness…",
+  "Capturing idea...",
+  "Mapping opportunity...",
+  "Validating market...",
+  "Building startup world...",
+  "Running critic review...",
+  "Calculating readiness...",
 ];
 
 export function LoadingSequence({ onComplete }: { onComplete?: () => void }) {
@@ -39,12 +39,11 @@ export function LoadingSequence({ onComplete }: { onComplete?: () => void }) {
     >
       <div className="mb-5 flex items-center justify-between">
         <h3 className="font-display text-lg font-semibold">
-          {done ? "Launch package ready" : "Building your launch package…"}
+          {done ? "Startup world ready" : "Building your startup world..."}
         </h3>
         <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
       </div>
 
-      {/* Progress bar */}
       <div className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-[#181818]">
         <motion.div
           className="h-full"
@@ -72,20 +71,14 @@ export function LoadingSequence({ onComplete }: { onComplete?: () => void }) {
                 </span>
               )}
               {state === "active" && (
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/20 pulse-red">
+                <span className="pulse-red grid h-5 w-5 place-items-center rounded-full bg-primary/20">
                   <Loader2 className="h-3 w-3 animate-spin text-primary" />
                 </span>
               )}
-              {state === "pending" && (
-                <span className="h-5 w-5 rounded-full border border-border" />
-              )}
+              {state === "pending" && <span className="h-5 w-5 rounded-full border border-border" />}
               <span
                 className={`text-sm ${
-                  state === "done"
-                    ? "text-foreground"
-                    : state === "active"
-                    ? "text-foreground"
-                    : "text-weak"
+                  state === "done" ? "text-foreground" : state === "active" ? "text-foreground" : "text-weak"
                 }`}
               >
                 {label}
@@ -95,7 +88,6 @@ export function LoadingSequence({ onComplete }: { onComplete?: () => void }) {
         })}
       </ul>
 
-      {/* Skeleton cards */}
       <AnimatePresence>
         {!done && (
           <motion.div
@@ -104,23 +96,22 @@ export function LoadingSequence({ onComplete }: { onComplete?: () => void }) {
             exit={{ opacity: 0 }}
             className="mt-6 grid gap-3 sm:grid-cols-3"
           >
-            {["Validation", "MVP Plan", "Revenue"].map((t) => (
+            {["Validation", "Agent Cast", "Revenue"].map((t) => (
               <div
                 key={t}
                 className="rounded-xl border border-border p-4"
                 style={{ background: "#0e0e0e" }}
               >
                 <div className="mb-3 text-xs uppercase tracking-wider text-weak">{t}</div>
-                <div className="mb-2 h-3 w-3/4 rounded shimmer" />
-                <div className="mb-2 h-3 w-full rounded shimmer" />
-                <div className="h-3 w-1/2 rounded shimmer" />
+                <div className="shimmer mb-2 h-3 w-3/4 rounded" />
+                <div className="shimmer mb-2 h-3 w-full rounded" />
+                <div className="shimmer h-3 w-1/2 rounded" />
               </div>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Result card */}
       <AnimatePresence>
         {done && (
           <motion.div
@@ -135,21 +126,25 @@ export function LoadingSequence({ onComplete }: { onComplete?: () => void }) {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="text-xs uppercase tracking-wider text-weak">Launch Readiness Score</div>
+                <div className="text-xs uppercase tracking-wider text-weak">
+                  Launch Readiness Score
+                </div>
                 <div className="font-display text-3xl font-bold text-[#3CFF7A]">87%</div>
               </div>
               <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(60,255,122,0.35)] bg-[rgba(60,255,122,0.08)] px-3 py-1 text-xs text-[#3CFF7A]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#3CFF7A] pulse-green" />
-                Launch package generated
+                <span className="pulse-green h-1.5 w-1.5 rounded-full bg-[#3CFF7A]" />
+                Startup world generated
               </span>
             </div>
             <ul className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
-              {["Problem validated", "MVP scope created", "Revenue model estimated"].map((b) => (
-                <li key={b} className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-[#3CFF7A]" />
-                  {b}
-                </li>
-              ))}
+              {["Problem validated", "Agent cast created", "Revenue model estimated"].map(
+                (b) => (
+                  <li key={b} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-[#3CFF7A]" />
+                    {b}
+                  </li>
+                ),
+              )}
             </ul>
           </motion.div>
         )}

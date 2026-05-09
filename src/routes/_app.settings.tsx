@@ -5,7 +5,7 @@ import { AppLayout, Topbar } from "@/components/AppShell";
 import { store, useStore } from "@/lib/app-store";
 
 export const Route = createFileRoute("/_app/settings")({
-  head: () => ({ meta: [{ title: "Settings — LaunchMyIdea AI" }] }),
+  head: () => ({ meta: [{ title: "Settings - Autonomous Startup-in-a-Box" }] }),
   component: SettingsPage,
 });
 
@@ -26,7 +26,7 @@ function SettingsPage() {
 
   function reset() {
     if (typeof window !== "undefined" && window.confirm("Reset all data?")) {
-      localStorage.removeItem("lmi_state_v1");
+      localStorage.removeItem("autonomous_startup_box_v2");
       window.location.href = "/login";
     }
   }

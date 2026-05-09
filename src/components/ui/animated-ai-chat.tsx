@@ -364,7 +364,7 @@ export function AnimatedAIChat({ compact = false, onSubmit }: { compact?: boolea
                 onKeyDown={handleKeyDown}
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
-                placeholder="Ask LaunchMyIdea AI a question..."
+                placeholder="Ask the startup runtime a question..."
                 containerClassName="w-full"
                 className={cn(
                   "w-full px-4 py-3 resize-none bg-transparent border-none text-foreground text-sm",

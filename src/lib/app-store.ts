@@ -1,4 +1,3 @@
-// Frontend-only mock auth + projects store with localStorage persistence
 import { useSyncExternalStore } from "react";
 
 export type Stage = {
@@ -24,6 +23,10 @@ export type PromptData = {
   mvpScope: string;
   tone: string;
   constraints: string;
+  seedContext: string;
+  keySignals: string;
+  simulationGoal: string;
+  amdFocus: string;
 };
 
 export type SavedPrompt = {
@@ -42,6 +45,76 @@ export type SimSettings = {
   includeCode: boolean;
 };
 
+export type AgentPersona = {
+  name: string;
+  role: string;
+  goal: string;
+  style: string;
+  deliverable: string;
+};
+
+export type SimulationReport = {
+  title: string;
+  readiness_score: number;
+  executive_summary: string;
+  startup_brief: {
+    idea: string;
+    audience: string;
+    problem: string;
+    business_model: string;
+    tone: string;
+    constraints: string;
+    seed_context: string;
+    key_signals: string;
+    amd_focus: string;
+  };
+  simulation_world: {
+    goal: string;
+    hypothesis: string;
+    market_forces: string[];
+    intervention_levers: string[];
+    simulation_modes: string[];
+  };
+  agents: AgentPersona[];
+  outputs: {
+    validation: {
+      market_opportunity: string;
+      why_now: string;
+      differentiation: string;
+      risks: string[];
+    };
+    product: {
+      north_star: string;
+      core_loop: string;
+      mvp_features: string[];
+      persona_tracks: string[];
+      first_release_scope: string;
+    };
+    engineering: {
+      stack: string[];
+      architecture: string[];
+      preview_html: string;
+    };
+    marketing: {
+      narrative: string;
+      channels: string[];
+      hook_lines: string[];
+      judge_pitch: string;
+    };
+    finance: {
+      pricing: string;
+      revenue_logic: string;
+      cost_drivers: string[];
+      first_year: string;
+    };
+    critic: {
+      main_failure_mode: string;
+      hardest_assumption: string;
+      fix_first: string[];
+    };
+  };
+};
+
 export type Project = {
   id: string;
   title: string;
@@ -57,6 +130,7 @@ export type Project = {
   promptHistory?: SavedPrompt[];
   simSettings?: SimSettings;
   backendOutput?: string;
+  simulationReport?: SimulationReport;
 };
 
 export type User = {
@@ -76,26 +150,26 @@ type State = {
   projects: Project[];
 };
 
-const KEY = "lmi_state_v1";
+const KEY = "autonomous_startup_box_v2";
 
 const DEFAULT_USER: User = {
   name: "Demo Founder",
-  email: "founder@launchmyidea.ai",
-  role: "Young Builder",
-  bio: "Building bold things, fast.",
-  prefs: { animation: "Normal", exportFormat: "PDF", focus: "AI Tool" },
+  email: "founder@amd-hackathon.ai",
+  role: "Hackathon Builder",
+  bio: "Building startup worlds with visible AI orchestration.",
+  prefs: { animation: "Normal", exportFormat: "Markdown", focus: "AI Infrastructure" },
 };
 
 export const STAGE_TEMPLATE: Omit<Stage, "status">[] = [
-  { key: "idea", title: "Idea Captured", description: "Raw concept logged" },
-  { key: "validation", title: "Market Validation", description: "Demand & competitor scan" },
-  { key: "mvp", title: "MVP Planning", description: "Scope core features" },
-  { key: "landing", title: "Landing Page", description: "Generate launch copy" },
-  { key: "code", title: "Code Structure", description: "Stack + folder plan" },
-  { key: "marketing", title: "Marketing Strategy", description: "Channels & posts" },
-  { key: "revenue", title: "Revenue Simulation", description: "Pricing & projections" },
-  { key: "critic", title: "Critic Review", description: "Stress-test assumptions" },
-  { key: "score", title: "Launch Score", description: "Final readiness rating" },
+  { key: "seed", title: "Reality Seed", description: "Startup premise and source signals locked" },
+  { key: "strategy", title: "CEO Strategy", description: "Thesis, wedge, and mission drafted" },
+  { key: "world", title: "World Model", description: "Market forces and simulation modes assembled" },
+  { key: "agents", title: "Agent Cast", description: "Specialist personas and responsibilities generated" },
+  { key: "build", title: "Build Plan", description: "MVP stack, flow, and preview scaffold designed" },
+  { key: "launch", title: "Launch Motion", description: "Narrative, channels, and GTM hooks generated" },
+  { key: "finance", title: "Revenue Model", description: "Pricing, cost logic, and viability evaluated" },
+  { key: "critic", title: "Critic Loop", description: "Weak assumptions attacked and improved" },
+  { key: "report", title: "AMD Report", description: "Final startup-world report published" },
 ];
 
 function freshStages(): Stage[] {
@@ -197,6 +271,8 @@ export const store = {
               activity: [],
               outputsReady: false,
               status: "Draft",
+              backendOutput: undefined,
+              simulationReport: undefined,
             }
           : p,
       ),
@@ -263,12 +339,19 @@ export const store = {
       projects: s.projects.map((p) => (p.id === id ? { ...p, backendOutput: output } : p)),
     }));
   },
+  setSimulationReport(id: string, report: SimulationReport) {
+    set((s) => ({
+      ...s,
+      projects: s.projects.map((p) => (p.id === id ? { ...p, simulationReport: report } : p)),
+    }));
+  },
 };
 
 export function ideaToTitle(idea: string): string {
-  if (!idea || !idea.trim()) return "Untitled Startup Idea";
+  if (!idea || !idea.trim()) return "Untitled Startup World";
   const stop = new Set([
-    "i","want","to","build","a","an","the","for","that","helps","of","and","with","app","tool","my","is","make","create","platform","using","in","on","ai",
+    "i", "want", "to", "build", "a", "an", "the", "for", "that", "helps", "of", "and", "with",
+    "app", "tool", "my", "is", "make", "create", "platform", "using", "in", "on", "ai",
   ]);
   const words = idea
     .toLowerCase()
@@ -276,8 +359,8 @@ export function ideaToTitle(idea: string): string {
     .split(/\s+/)
     .filter((w) => w && !stop.has(w));
   const pick = words.slice(0, 2).map((w) => w[0].toUpperCase() + w.slice(1));
-  if (pick.length === 0) return "New Startup Idea";
-  if (pick.length === 1) return `${pick[0]} Startup`;
+  if (pick.length === 0) return "New Startup World";
+  if (pick.length === 1) return `${pick[0]} World`;
   return pick.join(" ");
 }
 

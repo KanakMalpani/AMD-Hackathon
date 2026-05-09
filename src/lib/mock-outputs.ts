@@ -174,7 +174,7 @@ const TYPE_DATA: Record<ProjectType, {
       { agent: "Build Engine", text: "Stack: React + Tailwind + lightweight reminders." },
       { agent: "Launch Engine", text: "Best launch channels are Discord study servers and YouTube Shorts." },
       { agent: "Critic Engine", text: "Risk detected: students may avoid tools that feel like extra work." },
-      { agent: "System", text: "Student-focused launch package generated.", done: true },
+      { agent: "System", text: "Student startup world report generated.", done: true },
     ],
   },
   fitness: {
@@ -223,7 +223,7 @@ const TYPE_DATA: Record<ProjectType, {
       { agent: "Build Engine", text: "Stack: React + Tailwind + simple workout generator." },
       { agent: "Launch Engine", text: "Best launch channels are Instagram Reels and fitness creators." },
       { agent: "Critic Engine", text: "Risk detected: fitness market is crowded, differentiation must be sharper." },
-      { agent: "System", text: "Fitness-focused launch package generated.", done: true },
+      { agent: "System", text: "Fitness startup world report generated.", done: true },
     ],
   },
   creator: {
@@ -272,7 +272,7 @@ const TYPE_DATA: Record<ProjectType, {
       { agent: "Build Engine", text: "Stack: React + Tailwind + simple content generator." },
       { agent: "Launch Engine", text: "Best launch channels are creator communities and X/Twitter." },
       { agent: "Critic Engine", text: "Risk detected: creators already use many tools, positioning must be sharper." },
-      { agent: "System", text: "Creator-focused launch package generated.", done: true },
+      { agent: "System", text: "Creator startup world report generated.", done: true },
     ],
   },
   general: {
@@ -295,7 +295,7 @@ const TYPE_DATA: Record<ProjectType, {
       `Stop drafting Notion docs. Start launching. ${title} writes the plan for you.`,
       `From 'I have an idea' to 'here's the MVP' in one click. ${title}.`,
     ],
-    outreach: (title) => `Hey — saw you're building. ${title} drafts your launch package end-to-end. Want a free run-through?`,
+    outreach: (title) => `Hey - saw you're building. ${title} drafts your startup world end-to-end. Want a free run-through?`,
     growth: [
       { label: "M1", users: 100, usersLabel: "100" },
       { label: "M2", users: 280, usersLabel: "280" },
@@ -321,7 +321,7 @@ const TYPE_DATA: Record<ProjectType, {
       { agent: "Build Engine", text: "Creating frontend and backend structure." },
       { agent: "Launch Engine", text: "Selecting first launch channels: communities + short-form." },
       { agent: "Critic Engine", text: "Weak differentiation detected. Suggesting sharper wedge." },
-      { agent: "System", text: "Launch package ready.", done: true },
+      { agent: "System", text: "Startup world report ready.", done: true },
     ],
   },
 };
@@ -343,7 +343,7 @@ export function buildOutputs(p: Project): OutputData {
       targetUser: persona.audience,
       marketRisk: data.critic.risk,
       competitors: data.competitors,
-      differentiation: `${title} ships a full, critic-reviewed launch package built specifically for the ${t} space.`,
+      differentiation: `${title} ships a full, critic-reviewed startup simulation built specifically for the ${t} space.`,
       score: Math.round((data.breakdown.problem + data.breakdown.market) / 2),
     },
     mvp: {
@@ -355,8 +355,8 @@ export function buildOutputs(p: Project): OutputData {
     },
     landing: {
       headline: `${title} — built for the ${t === "general" ? "next builder" : t} space.`,
-      subheading: `Turn "${idea.slice(0, 80)}" into a launch-ready plan in minutes.`,
-      cta: "Generate my launch package",
+      subheading: `Turn "${idea.slice(0, 80)}" into a visible startup world in minutes.`,
+      cta: "Run my startup world",
       bullets: data.landingBullets,
     },
     code: {

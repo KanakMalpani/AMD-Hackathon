@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { HeroSection } from "@/components/HeroSection";
-import { GrowthSection } from "@/components/GrowthSection";
 import { FinalCTA } from "@/components/FinalCTA";
+import { GrowthSection } from "@/components/GrowthSection";
+import { HeroSection } from "@/components/HeroSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "LaunchMyIdea AI — Stop thinking, start launching" },
+      { title: "Autonomous Startup-in-a-Box - AMD Multi-Agent Startup Simulator" },
       {
         name: "description",
         content:
-          "LaunchMyIdea AI turns your startup idea into validation, MVP plan, copy, code structure, marketing and a launch-ready package.",
+          "Autonomous Startup-in-a-Box turns a raw startup idea into a visible AMD-powered multi-agent simulation spanning strategy, MVP, launch, and revenue logic.",
       },
     ],
   }),

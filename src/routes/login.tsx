@@ -2,14 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Rocket } from "lucide-react";
 import { AuthLayout } from "@/components/AuthLayout";
+import { AnimatedButton } from "@/components/AnimatedButton";
 import { PasswordInput } from "@/components/PasswordInput";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
-import { AnimatedButton } from "@/components/AnimatedButton";
 import { store } from "@/lib/app-store";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
-    meta: [{ title: "Log in — LaunchMyIdea AI" }],
+    meta: [{ title: "Log in - Autonomous Startup-in-a-Box" }],
   }),
   component: LoginPage,
 });
@@ -33,7 +33,7 @@ function LoginPage() {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Continue building your next launch-ready idea."
+      subtitle="Continue building your next AMD-powered startup simulation."
       footer={
         <>
           New here?{" "}
@@ -50,7 +50,7 @@ function LoginPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@launchmyidea.ai"
+            placeholder="you@startupworld.ai"
             className="w-full rounded-xl border bg-[#0d0d0f] px-4 py-3 text-sm text-foreground placeholder:text-weak outline-none transition-all focus:border-[rgba(255,45,45,0.6)] focus:shadow-[0_0_22px_rgba(255,45,45,0.18)]"
             style={{ borderColor: "#2A2A2A" }}
           />
@@ -71,12 +71,7 @@ function LoginPage() {
           </div>
         )}
 
-        <AnimatedButton
-          type="submit"
-          icon={<Rocket className="h-4 w-4" />}
-          glowPulse
-          className="w-full"
-        >
+        <AnimatedButton type="submit" icon={<Rocket className="h-4 w-4" />} glowPulse className="w-full">
           Log in
         </AnimatedButton>
 

@@ -5,7 +5,7 @@ import { AnimatedButton } from "./AnimatedButton";
 import { IdeaCoreVisual } from "./IdeaCoreVisual";
 import { useStartLaunch } from "@/lib/use-start-launch";
 
-const TYPE_TARGET = "Start launching";
+const TYPE_TARGET = "Simulate the company";
 const TYPE_START_DELAY = 800;
 
 function Typewriter({ text, startDelay = 0 }: { text: string; startDelay?: number }) {
@@ -27,7 +27,7 @@ function Typewriter({ text, startDelay = 0 }: { text: string; startDelay?: numbe
       {text.slice(0, count)}
       <span
         aria-hidden
-        className={"ml-0.5 inline-block w-[3px] h-[0.9em] -mb-1 bg-primary align-baseline " + (done ? "animate-pulse" : "")}
+        className={"ml-0.5 inline-block h-[0.9em] w-[3px] -mb-1 bg-primary align-baseline " + (done ? "animate-pulse" : "")}
       />
     </span>
   );
@@ -36,7 +36,7 @@ function Typewriter({ text, startDelay = 0 }: { text: string; startDelay?: numbe
 export function HeroSection() {
   const start = useStartLaunch();
   return (
-    <section id="top" className="relative mx-auto max-w-7xl px-4 pt-32 pb-20 sm:px-6 lg:px-8 lg:pt-40">
+    <section id="top" className="relative mx-auto max-w-7xl px-4 pb-20 pt-32 sm:px-6 lg:px-8 lg:pt-40">
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <div>
           <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
@@ -46,7 +46,7 @@ export function HeroSection() {
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="mr-3 inline-block"
             >
-              Stop just thinking about ideas.
+              Stop pitching static startup plans.
             </motion.span>
             <span className="mr-3 inline-block">
               <Typewriter text={TYPE_TARGET} startDelay={TYPE_START_DELAY} />
@@ -57,7 +57,7 @@ export function HeroSection() {
               transition={{ duration: 0.7, delay: TYPE_START_DELAY / 1000 + TYPE_TARGET.length * 0.07 + 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="mr-3 inline-block"
             >
-              them.
+              in motion.
             </motion.span>
           </h1>
 
@@ -65,11 +65,11 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="mt-6 max-w-[600px] text-base text-muted-foreground sm:text-lg"
+            className="mt-6 max-w-[640px] text-base text-muted-foreground sm:text-lg"
           >
-            LaunchMyIdea AI transforms your startup concept into validation, MVP direction,
-            landing copy, code structure, marketing strategy, revenue simulation, and a
-            critic-reviewed launch plan.
+            Autonomous Startup-in-a-Box transforms a raw idea into an AMD-powered startup world:
+            strategy, agent cast, MVP build plan, launch narrative, revenue logic, and a
+            critic-reviewed simulation report you can inspect live.
           </motion.p>
 
           <motion.div
@@ -79,7 +79,7 @@ export function HeroSection() {
             className="mt-8 flex flex-wrap items-center gap-3"
           >
             <AnimatedButton icon={<Rocket className="h-4 w-4" />} onClick={() => start()}>
-              Launch My Idea
+              Enter the startup world
             </AnimatedButton>
           </motion.div>
         </div>

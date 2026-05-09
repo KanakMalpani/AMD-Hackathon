@@ -7,7 +7,7 @@ import { AppLayout, Topbar } from "@/components/AppShell";
 import { store, useStore } from "@/lib/app-store";
 
 export const Route = createFileRoute("/_app/profile")({
-  head: () => ({ meta: [{ title: "Profile — LaunchMyIdea AI" }] }),
+  head: () => ({ meta: [{ title: "Profile - Autonomous Startup-in-a-Box" }] }),
   component: ProfilePage,
 });
 
@@ -42,7 +42,7 @@ function ProfilePage() {
 
   const stats = [
     { label: "Projects Created", value: projects.length },
-    { label: "Launch Packages", value: ready },
+    { label: "Simulation Runs", value: ready },
     { label: "Avg Readiness", value: avg },
     { label: "Best Score", value: best },
   ];

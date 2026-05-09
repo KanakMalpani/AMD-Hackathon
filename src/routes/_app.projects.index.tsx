@@ -6,7 +6,7 @@ import { AppLayout, Topbar } from "@/components/AppShell";
 import { store, useStore, type Project } from "@/lib/app-store";
 
 export const Route = createFileRoute("/_app/projects/")({
-  head: () => ({ meta: [{ title: "Startups — LaunchMyIdea" }] }),
+  head: () => ({ meta: [{ title: "Startups - Autonomous Startup-in-a-Box" }] }),
   component: ProjectsPage,
 });
 
@@ -24,9 +24,7 @@ function ProjectsPage() {
   const filtered = projects
     .filter((p) => (filter === "All" ? true : p.status === filter))
     .filter((p) =>
-      q.trim()
-        ? (p.title + " " + p.idea).toLowerCase().includes(q.toLowerCase())
-        : true,
+      q.trim() ? (p.title + " " + p.idea).toLowerCase().includes(q.toLowerCase()) : true,
     );
 
   function openNew() {
@@ -43,12 +41,12 @@ function ProjectsPage() {
   }
 
   return (
-    <AppLayout topbar={<Topbar title="Your Startups" />}>
+    <AppLayout topbar={<Topbar title="Your Startup Worlds" />}>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-bold tracking-tight">Your Startups</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Your Startup Worlds</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Track every idea from rough concept to launch-ready package.
+            Track every idea from rough concept to a full multi-agent company simulation.
           </p>
         </div>
         <button
@@ -57,17 +55,17 @@ function ProjectsPage() {
           style={{ background: "#FF2D2D", boxShadow: "0 0 24px rgba(255,45,45,0.35)" }}
         >
           <Plus className="h-4 w-4" />
-          Start New Idea
+          New Workspace
         </button>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-weak" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search startups…"
+            placeholder="Search startup worlds..."
             className="h-10 w-full rounded-lg border bg-[#0d0d0f] pl-9 pr-3 text-sm text-foreground placeholder:text-weak outline-none focus:border-[rgba(255,45,45,0.5)]"
             style={{ borderColor: "#2A2A2A" }}
           />
@@ -116,13 +114,17 @@ function ProjectsPage() {
               exit={{ y: 8, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-md rounded-2xl border p-6"
-              style={{ background: "#111111", borderColor: "#2A2A2A", boxShadow: "0 30px 80px rgba(0,0,0,0.5)" }}
+              style={{
+                background: "#111111",
+                borderColor: "#2A2A2A",
+                boxShadow: "0 30px 80px rgba(0,0,0,0.5)",
+              }}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-display text-lg font-semibold">Name your startup</h3>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Give it a memorable name — or skip and leave it untitled.
+                    Give it a memorable name, or skip and leave it untitled.
                   </p>
                 </div>
                 <button onClick={() => setNaming(false)} className="text-weak hover:text-primary">
@@ -134,8 +136,10 @@ function ProjectsPage() {
                 autoFocus
                 value={nameDraft}
                 onChange={(e) => setNameDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") createWith(nameDraft); }}
-                placeholder="e.g. Fitness app for students"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") createWith(nameDraft);
+                }}
+                placeholder="e.g. Founder copilot for student teams"
                 className="mt-5 h-11 w-full rounded-lg border bg-[#0d0d0f] px-3 text-sm text-foreground placeholder:text-weak outline-none focus:border-[rgba(255,45,45,0.5)]"
                 style={{ borderColor: "#2A2A2A" }}
               />
@@ -179,7 +183,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         <div className="min-w-0">
           <h3 className="truncate font-display text-base font-semibold">{project.title}</h3>
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-            {project.idea || "No idea yet — open the dashboard to add one."}
+            {project.idea || "No idea yet - open the dashboard to add one."}
           </p>
         </div>
         <span
@@ -196,7 +200,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
       <div className="mt-5">
         <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-weak">
-          <span>Launch readiness</span>
+          <span>Simulation readiness</span>
           <span>{project.launchReadiness}/100</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-[#1a1a1c]">
@@ -215,9 +219,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       </div>
 
       <div className="mt-5 flex items-center justify-between">
-        <span className="text-[11px] text-weak">
-          {new Date(project.createdAt).toLocaleDateString()}
-        </span>
+        <span className="text-[11px] text-weak">{new Date(project.createdAt).toLocaleDateString()}</span>
         <Link
           to="/projects/$projectId/dashboard"
           params={{ projectId: project.id }}
@@ -244,7 +246,8 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       </span>
       <h3 className="mt-5 font-display text-xl font-semibold">Start with one idea.</h3>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        Create your first startup workspace and turn a rough concept into a launch-ready package.
+        Create your first startup workspace and turn a rough concept into a visible company
+        simulation.
       </p>
       <button
         onClick={onCreate}
@@ -252,7 +255,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
         style={{ background: "#FF2D2D", boxShadow: "0 0 24px rgba(255,45,45,0.35)" }}
       >
         <Plus className="h-4 w-4" />
-        Start New Idea
+        New Workspace
       </button>
     </div>
   );

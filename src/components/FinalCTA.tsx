@@ -13,18 +13,20 @@ export function FinalCTA() {
       >
         <RevealSection>
           <h2 className="mx-auto max-w-3xl font-display text-3xl font-bold leading-tight sm:text-5xl">
-            Turn one raw idea into a <span className="text-highlight">launch-ready</span> startup package.
+            Turn one raw idea into a <span className="text-highlight">living</span> startup
+            simulation.
           </h2>
         </RevealSection>
         <RevealSection delay={0.1}>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            Build your first launch-ready startup package in minutes.
+            Build your first autonomous company run, then show every agent decision to the
+            judges.
           </p>
         </RevealSection>
         <RevealSection delay={0.2}>
           <div className="mt-8 flex justify-center">
             <AnimatedButton icon={<Rocket className="h-4 w-4" />} onClick={() => start()}>
-              Launch My Idea
+              Start The Simulation
             </AnimatedButton>
           </div>
         </RevealSection>

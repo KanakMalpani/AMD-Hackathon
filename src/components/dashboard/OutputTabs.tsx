@@ -1,34 +1,41 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import type { OutputData } from "@/lib/mock-outputs";
 import { Check } from "lucide-react";
-
 import ReactMarkdown from "react-markdown";
+import type { OutputData } from "@/lib/mock-outputs";
+import type { SimulationReport } from "@/lib/app-store";
 
-const TABS = ["AMD AI Plan", "Live Preview", "Validation", "MVP", "Landing", "Code", "Marketing", "Growth", "Critic"] as const;
+const TABS = ["Executive", "World", "Agents", "Validation", "Product", "Build", "Launch", "Finance", "Critic", "Live Preview"] as const;
 type Tab = (typeof TABS)[number];
 
-export function OutputTabs({ data, ready, backendOutput }: { data: OutputData; ready: boolean; backendOutput?: string }) {
-  const [tab, setTab] = useState<Tab>("AMD AI Plan");
+export function OutputTabs({
+  data,
+  ready,
+  backendOutput,
+  report,
+}: {
+  data: OutputData;
+  ready: boolean;
+  backendOutput?: string;
+  report?: SimulationReport;
+}) {
+  const [tab, setTab] = useState<Tab>("Executive");
 
   return (
-    <div
-      className="rounded-2xl border p-5"
-      style={{ background: "#111111", borderColor: "#2A2A2A" }}
-    >
+    <div className="rounded-2xl border p-5" style={{ background: "#111111", borderColor: "#2A2A2A" }}>
       <div className="flex flex-wrap gap-2 border-b pb-3" style={{ borderColor: "#2A2A2A" }}>
-        {TABS.map((t) => (
+        {TABS.map((label) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={label}
+            onClick={() => setTab(label)}
             className="rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
             style={{
-              background: tab === t ? "rgba(255,45,45,0.12)" : "transparent",
-              color: tab === t ? "#FF8585" : "#A1A1AA",
-              border: `1px solid ${tab === t ? "rgba(255,45,45,0.5)" : "transparent"}`,
+              background: tab === label ? "rgba(255,45,45,0.12)" : "transparent",
+              color: tab === label ? "#FF8585" : "#A1A1AA",
+              border: `1px solid ${tab === label ? "rgba(255,45,45,0.5)" : "transparent"}`,
             }}
           >
-            {t}
+            {label}
           </button>
         ))}
       </div>
@@ -47,15 +54,16 @@ export function OutputTabs({ data, ready, backendOutput }: { data: OutputData; r
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.35 }}
             >
-              {tab === "AMD AI Plan" && <AmdPlanTab output={backendOutput} />}
-              {tab === "Live Preview" && <LivePreviewTab output={backendOutput} />}
-              {tab === "Validation" && <ValidationTab d={data.validation} />}
-              {tab === "MVP" && <MvpTab d={data.mvp} />}
-              {tab === "Landing" && <LandingTab d={data.landing} />}
-              {tab === "Code" && <CodeTab d={data.code} />}
-              {tab === "Marketing" && <MarketingTab d={data.marketing} />}
-              {tab === "Growth" && <GrowthTab d={data.growth} />}
-              {tab === "Critic" && <CriticTab d={data.critic} />}
+              {tab === "Executive" && <ExecutiveTab report={report} output={backendOutput} />}
+              {tab === "World" && <WorldTab report={report} data={data} />}
+              {tab === "Agents" && <AgentsTab report={report} />}
+              {tab === "Validation" && <ValidationTab report={report} fallback={data} />}
+              {tab === "Product" && <ProductTab report={report} fallback={data} />}
+              {tab === "Build" && <BuildTab report={report} fallback={data} />}
+              {tab === "Launch" && <LaunchTab report={report} fallback={data} />}
+              {tab === "Finance" && <FinanceTab report={report} />}
+              {tab === "Critic" && <CriticTab report={report} fallback={data} />}
+              {tab === "Live Preview" && <LivePreviewTab report={report} output={backendOutput} />}
             </motion.div>
           </AnimatePresence>
         )}
@@ -64,71 +72,234 @@ export function OutputTabs({ data, ready, backendOutput }: { data: OutputData; r
   );
 }
 
-function AmdPlanTab({ output }: { output?: string }) {
+function ExecutiveTab({ report, output }: { report?: SimulationReport; output?: string }) {
+  if (report) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-weak">Executive summary</div>
+          <p className="mt-2 text-sm leading-7 text-foreground/90">{report.executive_summary}</p>
+        </div>
+        <CardGrid>
+          <Field label="Audience">{report.startup_brief.audience}</Field>
+          <Field label="Problem">{report.startup_brief.problem}</Field>
+          <Field label="Business model">{report.startup_brief.business_model}</Field>
+          <Field label="AMD focus">{report.startup_brief.amd_focus}</Field>
+        </CardGrid>
+      </div>
+    );
+  }
+
   return (
     <div className="prose prose-invert max-w-none text-sm leading-relaxed text-foreground/90">
       {output ? (
-        <ReactMarkdown
-          components={{
-            h1: ({ ...props }) => <h1 className="mt-6 mb-4 text-xl font-bold text-primary" {...props} />,
-            h2: ({ ...props }) => <h2 className="mt-5 mb-3 text-lg font-bold text-foreground" {...props} />,
-            h3: ({ ...props }) => <h3 className="mt-4 mb-2 text-base font-semibold text-foreground/80" {...props} />,
-            p: ({ ...props }) => <p className="mb-4" {...props} />,
-            ul: ({ ...props }) => <ul className="mb-4 list-disc pl-5 space-y-2" {...props} />,
-            li: ({ ...props }) => <li {...props} />,
-            strong: ({ ...props }) => <strong className="font-bold text-primary" {...props} />,
-          }}
-        >
-          {output}
-        </ReactMarkdown>
+        <ReactMarkdown>{output}</ReactMarkdown>
       ) : (
-        <div className="py-10 text-center text-weak italic">No raw plan data available.</div>
+        <div className="py-10 text-center text-weak italic">No report data available.</div>
       )}
     </div>
   );
 }
 
-function LivePreviewTab({ output }: { output?: string }) {
-  if (!output) {
-    return <div className="py-10 text-center text-weak italic">No HTML data available.</div>;
+function WorldTab({ report, data }: { report?: SimulationReport; data: OutputData }) {
+  if (!report) {
+    return (
+      <div className="space-y-4">
+        <Field label="Hypothesis">{data.validation.differentiation}</Field>
+        <Field label="Growth narrative">{data.growth.summary}</Field>
+      </div>
+    );
   }
-  
-  // Extract HTML between ```html and ```
-  const htmlMatch = output.match(/```html([\s\S]*?)```/i);
-  let htmlContent = "";
-  
-  if (htmlMatch && htmlMatch[1]) {
-    htmlContent = htmlMatch[1].trim();
-  } else {
-    // Fallback if no markdown block is found, try to find raw HTML
-    const bodyMatch = output.match(/<!DOCTYPE html>[\s\S]*<\/html>/i);
-    if (bodyMatch) {
-      htmlContent = bodyMatch[0];
-    } else {
-      return <div className="py-10 text-center text-weak italic">No functional HTML could be extracted from the plan.</div>;
-    }
+
+  return (
+    <div className="space-y-4">
+      <Field label="Simulation goal">{report.simulation_world.goal}</Field>
+      <Field label="Hypothesis">{report.simulation_world.hypothesis}</Field>
+      <CardGrid>
+        <Field label="Market forces"><Bullets items={report.simulation_world.market_forces} /></Field>
+        <Field label="Intervention levers"><Bullets items={report.simulation_world.intervention_levers} /></Field>
+      </CardGrid>
+      <Field label="Simulation modes">
+        <div className="flex flex-wrap gap-2">
+          {report.simulation_world.simulation_modes.map((mode) => (
+            <Chip key={mode} label={mode} color="green" />
+          ))}
+        </div>
+      </Field>
+    </div>
+  );
+}
+
+function AgentsTab({ report }: { report?: SimulationReport }) {
+  if (!report) {
+    return <div className="py-10 text-center text-weak italic">Agent roster will appear after the run.</div>;
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {report.agents.map((agent) => (
+        <div key={agent.name} className="rounded-xl border p-4" style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}>
+          <div className="text-xs uppercase tracking-wider text-primary">{agent.role}</div>
+          <h3 className="mt-2 font-display text-lg font-semibold">{agent.name}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{agent.goal}</p>
+          <div className="mt-4 space-y-2 text-sm">
+            <Field label="Style">{agent.style}</Field>
+            <Field label="Deliverable">{agent.deliverable}</Field>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ValidationTab({ report, fallback }: { report?: SimulationReport; fallback: OutputData }) {
+  if (!report) {
+    return <LegacyValidationTab d={fallback.validation} />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Field label="Market opportunity">{report.outputs.validation.market_opportunity}</Field>
+      <Field label="Why now">{report.outputs.validation.why_now}</Field>
+      <Field label="Differentiation">{report.outputs.validation.differentiation}</Field>
+      <Field label="Risks"><Bullets items={report.outputs.validation.risks} /></Field>
+    </div>
+  );
+}
+
+function ProductTab({ report, fallback }: { report?: SimulationReport; fallback: OutputData }) {
+  if (!report) {
+    return <LegacyMvpTab d={fallback.mvp} />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Field label="North star">{report.outputs.product.north_star}</Field>
+      <Field label="Core loop">{report.outputs.product.core_loop}</Field>
+      <CardGrid>
+        <Field label="MVP features"><Bullets items={report.outputs.product.mvp_features} /></Field>
+        <Field label="Persona tracks"><Bullets items={report.outputs.product.persona_tracks} /></Field>
+      </CardGrid>
+      <Field label="First release scope">{report.outputs.product.first_release_scope}</Field>
+    </div>
+  );
+}
+
+function BuildTab({ report, fallback }: { report?: SimulationReport; fallback: OutputData }) {
+  if (!report) {
+    return <LegacyCodeTab d={fallback.code} />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Field label="Suggested stack">
+        <div className="flex flex-wrap gap-2">
+          {report.outputs.engineering.stack.map((item) => (
+            <Chip key={item} label={item} color="green" />
+          ))}
+        </div>
+      </Field>
+      <Field label="Architecture"><Bullets items={report.outputs.engineering.architecture} /></Field>
+    </div>
+  );
+}
+
+function LaunchTab({ report, fallback }: { report?: SimulationReport; fallback: OutputData }) {
+  if (!report) {
+    return <LegacyMarketingTab d={fallback.marketing} />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Field label="Narrative">{report.outputs.marketing.narrative}</Field>
+      <CardGrid>
+        <Field label="Channels"><Bullets items={report.outputs.marketing.channels} /></Field>
+        <Field label="Hook lines"><Bullets items={report.outputs.marketing.hook_lines} /></Field>
+      </CardGrid>
+      <Field label="Judge pitch">
+        <div className="rounded-lg border p-3 text-sm text-muted-foreground" style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}>
+          {report.outputs.marketing.judge_pitch}
+        </div>
+      </Field>
+    </div>
+  );
+}
+
+function FinanceTab({ report }: { report?: SimulationReport }) {
+  if (!report) {
+    return <div className="py-10 text-center text-weak italic">Finance analysis will appear after the run.</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <CardGrid>
+        <Field label="Pricing">{report.outputs.finance.pricing}</Field>
+        <Field label="Revenue logic">{report.outputs.finance.revenue_logic}</Field>
+      </CardGrid>
+      <Field label="Cost drivers"><Bullets items={report.outputs.finance.cost_drivers} /></Field>
+      <Field label="First-year view">{report.outputs.finance.first_year}</Field>
+    </div>
+  );
+}
+
+function CriticTab({ report, fallback }: { report?: SimulationReport; fallback: OutputData }) {
+  if (!report) {
+    return <LegacyCriticTab d={fallback.critic} />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <CardGrid>
+        <Field label="Main failure mode">{report.outputs.critic.main_failure_mode}</Field>
+        <Field label="Hardest assumption">{report.outputs.critic.hardest_assumption}</Field>
+      </CardGrid>
+      <Field label="Fix first">
+        <div className="rounded-lg border p-3 text-sm" style={{ background: "rgba(60,255,122,0.06)", borderColor: "rgba(60,255,122,0.35)" }}>
+          <Bullets items={report.outputs.critic.fix_first} />
+        </div>
+      </Field>
+    </div>
+  );
+}
+
+function LivePreviewTab({ report, output }: { report?: SimulationReport; output?: string }) {
+  let htmlContent = report?.outputs.engineering.preview_html ?? "";
+
+  if (!htmlContent && output) {
+    const htmlMatch = output.match(/```html([\s\S]*?)```/i);
+    if (htmlMatch?.[1]) htmlContent = htmlMatch[1].trim();
+  }
+
+  if (!htmlContent) {
+    return <div className="py-10 text-center text-weak italic">No preview HTML available.</div>;
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-sm font-semibold text-foreground">Live MVP Preview</h3>
+        <h3 className="font-display text-sm font-semibold text-foreground">Live startup preview</h3>
         <span className="rounded-full border border-[rgba(255,45,45,0.4)] bg-[rgba(255,45,45,0.12)] px-2 py-0.5 text-[10px] uppercase tracking-wider text-primary">
-          Rendered by AMD ROCm
+          AMD Render Story
         </span>
       </div>
       <div className="overflow-hidden rounded-xl border border-[#2A2A2A] bg-white">
-        <iframe 
-          srcDoc={htmlContent} 
-          className="h-[500px] w-full border-0"
-          sandbox="allow-scripts"
-          title="Live Preview"
-        />
+        <iframe srcDoc={htmlContent} className="h-[500px] w-full border-0" sandbox="allow-scripts" title="Live Preview" />
       </div>
     </div>
   );
 }
 
+function Chip({ label, color }: { label: string; color: "green" | "neutral" }) {
+  const style =
+    color === "green"
+      ? { background: "rgba(60,255,122,0.08)", borderColor: "rgba(60,255,122,0.35)", color: "#3CFF7A" }
+      : { background: "#181818", borderColor: "#2A2A2A", color: "#A1A1AA" };
+  return (
+    <span className="rounded-full border px-2 py-0.5 text-xs" style={style}>
+      {label}
+    </span>
+  );
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -155,57 +326,33 @@ function Bullets({ items }: { items: string[] }) {
   );
 }
 
-function ValidationTab({ d }: { d: OutputData["validation"] }) {
+function LegacyValidationTab({ d }: { d: OutputData["validation"] }) {
   return (
     <div className="space-y-4">
       <CardGrid>
-        <Field label="Problem strength">
-          <ScoreBar v={d.problemStrength} />
-        </Field>
-        <Field label="Validation score">
-          <ScoreBar v={d.score} />
-        </Field>
+        <Field label="Problem strength">{d.problemStrength}</Field>
+        <Field label="Validation score">{d.score}</Field>
         <Field label="Target user">{d.targetUser}</Field>
         <Field label="Market risk">{d.marketRisk}</Field>
       </CardGrid>
       <Field label="Differentiation">{d.differentiation}</Field>
-      <Field label="Competitors">
-        <div className="flex flex-wrap gap-2">
-          {d.competitors.map((c) => (
-            <span
-              key={c}
-              className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground"
-              style={{ background: "#181818", borderColor: "#2A2A2A" }}
-            >
-              {c}
-            </span>
-          ))}
-        </div>
-      </Field>
     </div>
   );
 }
 
-function MvpTab({ d }: { d: OutputData["mvp"] }) {
+function LegacyMvpTab({ d }: { d: OutputData["mvp"] }) {
   return (
     <div className="space-y-4">
       <Field label="Core features"><Bullets items={d.coreFeatures} /></Field>
       <CardGrid>
         <Field label="Must have"><Bullets items={d.mustHave} /></Field>
-        <Field label="Nice to have">
-          <ul className="space-y-1.5 text-sm text-muted-foreground">
-            {d.niceToHave.map((it, i) => <li key={i}>• {it}</li>)}
-          </ul>
-        </Field>
+        <Field label="Nice to have"><Bullets items={d.niceToHave} /></Field>
       </CardGrid>
       <Field label="User flow">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           {d.userFlow.map((s, i) => (
             <span key={i} className="flex items-center gap-2">
-              <span
-                className="rounded-md border px-2 py-1 text-xs"
-                style={{ background: "#181818", borderColor: "#2A2A2A" }}
-              >{s}</span>
+              <span className="rounded-md border px-2 py-1 text-xs" style={{ background: "#181818", borderColor: "#2A2A2A" }}>{s}</span>
               {i < d.userFlow.length - 1 && <span className="text-weak">→</span>}
             </span>
           ))}
@@ -216,147 +363,41 @@ function MvpTab({ d }: { d: OutputData["mvp"] }) {
   );
 }
 
-function LandingTab({ d }: { d: OutputData["landing"] }) {
-  return (
-    <div className="space-y-4">
-      <div
-        className="rounded-xl border p-5"
-        style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}
-      >
-        <h3 className="font-display text-2xl font-bold">{d.headline}</h3>
-        <p className="mt-2 text-sm text-muted-foreground">{d.subheading}</p>
-        <button
-          className="mt-4 rounded-lg px-3 py-2 text-xs font-semibold text-white"
-          style={{ background: "#FF2D2D" }}
-        >{d.cta}</button>
-      </div>
-      <Field label="Feature bullets"><Bullets items={d.bullets} /></Field>
-    </div>
-  );
-}
-
-function CodeTab({ d }: { d: OutputData["code"] }) {
+function LegacyCodeTab({ d }: { d: OutputData["code"] }) {
   return (
     <div className="space-y-4">
       <Field label="Suggested stack">
         <div className="flex flex-wrap gap-2">
-          {d.stack.map((s) => (
-            <span
-              key={s}
-              className="rounded-full border px-2 py-0.5 text-xs"
-              style={{ background: "rgba(60,255,122,0.08)", borderColor: "rgba(60,255,122,0.35)", color: "#3CFF7A" }}
-            >{s}</span>
+          {d.stack.map((item) => (
+            <Chip key={item} label={item} color="green" />
           ))}
         </div>
       </Field>
-      <CardGrid>
-        <CodeBlock title="Folder structure" lines={d.folders} />
-        <CodeBlock title="API routes" lines={d.routes} />
-        <CodeBlock title="Schema idea" lines={d.schema} />
-        <CodeBlock title="Starter components" lines={d.components} />
-      </CardGrid>
+      <Field label="Architecture"><Bullets items={d.folders} /></Field>
     </div>
   );
 }
 
-function CodeBlock({ title, lines }: { title: string; lines: string[] }) {
-  return (
-    <div>
-      <div className="text-[10px] uppercase tracking-wider text-weak">{title}</div>
-      <pre
-        className="mt-1 overflow-x-auto rounded-lg border p-3 font-mono text-xs leading-relaxed"
-        style={{ background: "#080809", borderColor: "#2A2A2A", color: "#D8D8DC" }}
-      >
-{lines.map((l) => "› " + l).join("\n")}
-      </pre>
-    </div>
-  );
-}
-
-function MarketingTab({ d }: { d: OutputData["marketing"] }) {
+function LegacyMarketingTab({ d }: { d: OutputData["marketing"] }) {
   return (
     <div className="space-y-4">
       <Field label="ICP">{d.icp}</Field>
-      <Field label="Launch channels">
-        <div className="flex flex-wrap gap-2">
-          {d.channels.map((c) => (
-            <span key={c} className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground" style={{ background: "#181818", borderColor: "#2A2A2A" }}>{c}</span>
-          ))}
-        </div>
-      </Field>
-      <Field label="Social posts">
-        <div className="space-y-2">
-          {d.posts.map((p, i) => (
-            <div key={i} className="rounded-lg border p-3 text-sm" style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}>{p}</div>
-          ))}
-        </div>
-      </Field>
-      <Field label="Outreach message">
-        <div className="rounded-lg border p-3 text-sm text-muted-foreground" style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}>{d.outreach}</div>
-      </Field>
+      <Field label="Launch channels"><Bullets items={d.channels} /></Field>
+      <Field label="Social posts"><Bullets items={d.posts} /></Field>
+      <Field label="Outreach">{d.outreach}</Field>
     </div>
   );
 }
 
-function GrowthTab({ d }: { d: OutputData["growth"] }) {
-  const max = Math.max(...d.months.map((m) => m.users));
-  return (
-    <div className="space-y-4">
-      <Field label="Growth projection (active users)">
-        <div className="grid grid-cols-6 items-end gap-2 rounded-xl border p-4" style={{ background: "#0c0c0e", borderColor: "#2A2A2A", minHeight: 160 }}>
-          {d.months.map((m) => (
-            <div key={m.label} className="flex flex-col items-center gap-1.5">
-              <div className="text-[10px] font-semibold" style={{ color: "#3CFF7A" }}>{m.usersLabel}</div>
-              <div className="w-full overflow-hidden rounded-md" style={{ height: 100 }}>
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${(m.users / max) * 100}%` }}
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  className="w-full rounded-md"
-                  style={{ background: "linear-gradient(180deg,#3CFF7A,#FF2D2D)", marginTop: `${100 - (m.users / max) * 100}%` }}
-                />
-              </div>
-              <div className="text-[10px] text-weak">{m.label}</div>
-            </div>
-          ))}
-        </div>
-      </Field>
-      <Field label="Summary">{d.summary}</Field>
-    </div>
-  );
-}
-
-function CriticTab({ d }: { d: OutputData["critic"] }) {
+function LegacyCriticTab({ d }: { d: OutputData["critic"] }) {
   return (
     <div className="space-y-4">
       <CardGrid>
         <Field label="Weakest assumption">{d.weakest}</Field>
         <Field label="Biggest risk">{d.risk}</Field>
-        <Field label="What will probably fail">{d.fail}</Field>
-        <Field label="What to fix first">{d.fix}</Field>
+        <Field label="What will fail">{d.fail}</Field>
+        <Field label="Fix first">{d.fix}</Field>
       </CardGrid>
-      <Field label="Improved version">
-        <div className="rounded-lg border p-3 text-sm" style={{ background: "rgba(60,255,122,0.06)", borderColor: "rgba(60,255,122,0.35)" }}>
-          {d.improved}
-        </div>
-      </Field>
-    </div>
-  );
-}
-
-function ScoreBar({ v }: { v: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#1a1a1c]">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${v}%` }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="h-full rounded-full"
-          style={{ background: "linear-gradient(90deg,#FF2D2D,#3CFF7A)" }}
-        />
-      </div>
-      <span className="w-10 text-right text-xs font-semibold">{v}</span>
     </div>
   );
 }

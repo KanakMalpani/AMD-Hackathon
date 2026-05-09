@@ -9,7 +9,7 @@ import { buildOutputs, personaFor } from "@/lib/mock-outputs";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/projects/$projectId/marketing")({
-  head: () => ({ meta: [{ title: "Launch Plan — LaunchMyIdea" }] }),
+  head: () => ({ meta: [{ title: "Go-To-Market - Autonomous Startup-in-a-Box" }] }),
   component: MarketingPage,
 });
 
@@ -79,8 +79,8 @@ function MarketingPage() {
     <AppLayout topbar={<Topbar project={project} />}>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-weak">Launch strategy</div>
-          <h2 className="font-display text-2xl font-bold tracking-tight">Launch Plan</h2>
+          <div className="text-[10px] uppercase tracking-wider text-weak">Go-to-market</div>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Go-To-Market Plan</h2>
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={regenerate} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors hover:border-[rgba(255,45,45,0.5)]" style={{ background: "#181818", borderColor: "#2A2A2A" }}>
@@ -156,7 +156,7 @@ function MarketingPage() {
               <Card title="One-line positioning" body={data.landing.headline} accent />
               <Card title="Category" body="AI-powered launch platform" />
               <Card title="Differentiator" body={data.validation.differentiation} />
-              <Card title="Why now" body="AI infra is finally cheap enough for indie founders to ship full launch packages." />
+              <Card title="Why now" body="AI infra is finally cheap enough for small teams to run visible, multi-agent startup simulations." />
               <Card title="Competitor alternative" body="Pasting raw prompts into ChatGPT and hoping the plan sticks." />
             </Grid>
           )}
@@ -222,7 +222,7 @@ function MarketingPage() {
                 `Your idea. Validated, scoped, launched.`,
               ]} />
               <Card title="Email subject lines" list={[
-                `Your launch package is ready 🚀`,
+                `Your startup world is ready for launch review`,
                 `[${project.title}] week 1 — here's what shipped`,
                 `Quick favor — try this in 60 seconds?`,
               ]} />

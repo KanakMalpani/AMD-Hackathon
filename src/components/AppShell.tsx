@@ -19,9 +19,9 @@ import { useState, type ReactNode } from "react";
 
 const projectNav = [
   { key: "dashboard", label: "Overview", icon: LayoutDashboard },
-  { key: "prompts", label: "Prompt", icon: Sparkles },
+  { key: "prompts", label: "Brief", icon: Sparkles },
   { key: "simulation", label: "Simulation", icon: Activity },
-  { key: "marketing", label: "Launch Plan", icon: Megaphone },
+  { key: "marketing", label: "Go-To-Market", icon: Megaphone },
   { key: "statistics", label: "Insights", icon: BarChart3 },
 ] as const;
 
@@ -41,7 +41,7 @@ function ProjectSwitcher({ activeId }: { activeId?: string }) {
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-wider text-weak">Startup</div>
           <div className="truncate text-sm font-semibold">
-            {active?.title ?? "Select a startup"}
+            {active?.title ?? "Select a workspace"}
           </div>
         </div>
         <ChevronDown className="h-3.5 w-3.5 text-weak" />
@@ -52,7 +52,7 @@ function ProjectSwitcher({ activeId }: { activeId?: string }) {
           style={{ background: "#111111", borderColor: "#2A2A2A" }}
         >
           {projects.length === 0 && (
-            <div className="px-3 py-3 text-xs text-weak">No startups yet.</div>
+            <div className="px-3 py-3 text-xs text-weak">No workspaces yet.</div>
           )}
           {projects.map((p) => (
             <button
@@ -82,7 +82,7 @@ function ProjectSwitcher({ activeId }: { activeId?: string }) {
             onClick={() => setOpen(false)}
             className="mt-1 block rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-[#181818]"
           >
-            View all startups →
+            View all workspaces →
           </Link>
         </div>
       )}
@@ -119,7 +119,7 @@ export function Sidebar({ projectId }: { projectId?: string }) {
           <Rocket className="h-4 w-4 text-white" />
         </span>
         <span className="font-display text-sm font-semibold tracking-tight">
-          LaunchMyIdea<span className="text-primary"> AI</span>
+          Autonomous Startup<span className="text-primary"> Box</span>
         </span>
       </Link>
 
@@ -286,7 +286,7 @@ export function Topbar({
           style={{ background: "#181818", borderColor: "#2A2A2A" }}
         >
           <Rocket className="h-3.5 w-3.5 text-primary" />
-          Start New Idea
+          New Workspace
         </button>
         <Link
           to="/profile"

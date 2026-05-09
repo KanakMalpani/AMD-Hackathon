@@ -6,9 +6,9 @@ import { RevealSection } from "./RevealSection";
 
 const metrics = [
   { label: "Launch Readiness Score", value: 87, suffix: "%", pct: 87, green: true },
-  { label: "Tasks Completed", value: 24, suffix: "", pct: 80 },
+  { label: "Agents Coordinated", value: 6, suffix: "", pct: 80 },
   { label: "Revenue Projection", value: 800, suffix: "/mo", prefix: "$", pct: 65 },
-  { label: "Idea-to-Launch Timeline", value: 48, suffix: "h", pct: 90 },
+  { label: "Idea-to-Demo Timeline", value: 48, suffix: "h", pct: 90 },
 ];
 
 export function GrowthSection() {
@@ -19,17 +19,17 @@ export function GrowthSection() {
       <RevealSection>
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-xs uppercase tracking-[0.25em] text-[#3CFF7A]">Growth</span>
-          <h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">Watch your idea grow</h2>
+          <h2 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
+            Watch your startup world form
+          </h2>
           <p className="mt-3 text-muted-foreground">
-            From a fragile spark to a structured, critic-reviewed launch package — in one continuous flow.
+            From a fragile spark to a critic-reviewed company simulation in one continuous flow.
           </p>
         </div>
       </RevealSection>
 
       <div ref={ref} className="mt-14 grid gap-10 lg:grid-cols-2">
-        {/* Before / After */}
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          {/* Raw Idea */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
@@ -63,7 +63,6 @@ export function GrowthSection() {
             <ArrowRight className="absolute -right-2 -top-2 h-4 w-4 text-[#3CFF7A]" />
           </div>
 
-          {/* Launch Package */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
@@ -75,13 +74,20 @@ export function GrowthSection() {
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wider text-[#3CFF7A]">Launch Package</span>
+              <span className="text-xs uppercase tracking-wider text-[#3CFF7A]">
+                Startup World
+              </span>
               <span className="rounded-full border border-[rgba(60,255,122,0.45)] bg-[rgba(60,255,122,0.08)] px-2 py-0.5 text-[10px] font-semibold text-[#3CFF7A]">
                 READY
               </span>
             </div>
             <ul className="mt-4 space-y-2 text-sm">
-              {["Problem validated", "MVP scope defined", "Marketing plan", "Revenue model"].map((t, i) => (
+              {[
+                "Problem validated",
+                "Agent cast defined",
+                "Launch motion drafted",
+                "Revenue model tested",
+              ].map((t, i) => (
                 <motion.li
                   key={t}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -97,7 +103,6 @@ export function GrowthSection() {
           </motion.div>
         </div>
 
-        {/* Metrics */}
         <div className="grid grid-cols-2 gap-4">
           {metrics.map((m, i) => (
             <motion.div
@@ -110,7 +115,11 @@ export function GrowthSection() {
               style={{ background: "#111111" }}
             >
               <div className="text-xs uppercase tracking-wider text-weak">{m.label}</div>
-              <div className={`mt-2 font-display text-3xl font-bold ${m.green ? "text-[#3CFF7A]" : "text-foreground"}`}>
+              <div
+                className={`mt-2 font-display text-3xl font-bold ${
+                  m.green ? "text-[#3CFF7A]" : "text-foreground"
+                }`}
+              >
                 <CountUpMetric value={m.value} suffix={m.suffix} prefix={m.prefix} />
               </div>
               <div className="mt-4">
