@@ -80,6 +80,19 @@ npm install
 npm run dev
 ```
 
+### ▲ Vercel Deployment
+This frontend now builds in SPA mode for reliable Vercel hosting with client-side route refresh support.
+
+- Set the Vercel root to the project folder that contains `package.json`
+- Keep the build command as `npm run build`
+- Keep the output directory as `dist/client`
+- Add `VITE_API_BASE_URL` in Vercel if you want the simulation screen to talk to a deployed backend instead of local FastAPI
+
+Example local env:
+```bash
+VITE_API_BASE_URL=http://localhost:8001
+```
+
 ---
 
 ## 🎬 The Demo Experience
