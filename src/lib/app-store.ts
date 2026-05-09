@@ -345,6 +345,17 @@ export const store = {
       projects: s.projects.map((p) => (p.id === id ? { ...p, simulationReport: report } : p)),
     }));
   },
+  syncSimulation(
+    id: string,
+    patch: Partial<
+      Pick<Project, "activity" | "stages" | "launchReadiness" | "backendOutput" | "simulationReport" | "outputsReady" | "status" | "currentStage">
+    >,
+  ) {
+    set((s) => ({
+      ...s,
+      projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
+  },
 };
 
 export function ideaToTitle(idea: string): string {

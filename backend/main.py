@@ -1,7 +1,10 @@
+import concurrent.futures
 import json
 import os
+import threading
 import time
 import uuid
+from copy import deepcopy
 from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI
@@ -19,15 +22,53 @@ AMD_LLM_API_KEY = os.getenv("AMD_LLM_API_KEY", "dummy")
 AMD_LLM_TEMPERATURE = float(os.getenv("AMD_LLM_TEMPERATURE", "0.35"))
 
 
-llm = ChatOpenAI(
-    model=AMD_LLM_MODEL,
-    temperature=AMD_LLM_TEMPERATURE,
-    base_url=AMD_LLM_BASE_URL,
-    api_key=AMD_LLM_API_KEY,
-)
-
-
-jobs: dict[str, dict[str, Any]] = {}
+STAGE_TEMPLATE = [
+    {
+        "key": "seed",
+        "title": "Reality Seed",
+        "description": "Startup premise and source signals locked",
+    },
+    {
+        "key": "strategy",
+        "title": "CEO Strategy",
+        "description": "Thesis, wedge, and mission drafted",
+    },
+    {
+        "key": "world",
+        "title": "World Model",
+        "description": "Market forces and simulation modes assembled",
+    },
+    {
+        "key": "agents",
+        "title": "Agent Cast",
+        "description": "Specialist personas and responsibilities generated",
+    },
+    {
+        "key": "build",
+        "title": "Build Plan",
+        "description": "MVP stack, flow, and preview scaffold designed",
+    },
+    {
+        "key": "launch",
+        "title": "Launch Motion",
+        "description": "Narrative, channels, and GTM hooks generated",
+    },
+    {
+        "key": "finance",
+        "title": "Revenue Model",
+        "description": "Pricing, cost logic, and viability evaluated",
+    },
+    {
+        "key": "critic",
+        "title": "Critic Loop",
+        "description": "Weak assumptions attacked and improved",
+    },
+    {
+        "key": "report",
+        "title": "AMD Report",
+        "description": "Final startup-world report published",
+    },
+]
 
 
 class StartupRequest(BaseModel):
@@ -42,6 +83,77 @@ class StartupRequest(BaseModel):
     keySignals: str | None = ""
     simulationGoal: str | None = ""
     amdFocus: str | None = ""
+
+
+jobs: dict[str, dict[str, Any]] = {}
+jobs_lock = threading.Lock()
+
+
+def get_llm() -> ChatOpenAI:
+    return ChatOpenAI(
+        model=AMD_LLM_MODEL,
+        temperature=AMD_LLM_TEMPERATURE,
+        base_url=AMD_LLM_BASE_URL,
+        api_key=AMD_LLM_API_KEY,
+    )
+
+
+def fresh_stages() -> list[dict[str, str]]:
+    stages: list[dict[str, str]] = []
+    for index, stage in enumerate(STAGE_TEMPLATE):
+        stages.append({**stage, "status": "complete" if index == 0 else "pending"})
+    return stages
+
+
+def classify_idea(idea: str) -> dict[str, str]:
+    text = idea.lower()
+    if any(token in text for token in ["student", "study", "exam", "campus", "learning"]):
+        return {
+            "segment": "student founders and education-focused builders",
+            "differentiator": "turning chaotic exam or study pressure into an adaptive execution loop",
+            "headline": "Simulate a better path from study stress to daily execution",
+        }
+    if any(token in text for token in ["fitness", "workout", "gym", "diet", "health"]):
+        return {
+            "segment": "fitness newcomers and habit-driven self-improvement users",
+            "differentiator": "making motivation measurable through visible accountability loops",
+            "headline": "Simulate the habit system before shipping the product",
+        }
+    if any(token in text for token in ["creator", "content", "youtube", "instagram", "tiktok", "newsletter"]):
+        return {
+            "segment": "solo creators trying to maintain consistency without burning out",
+            "differentiator": "compressing ideation, packaging, and distribution into one workflow",
+            "headline": "Simulate creator momentum before the content calendar slips",
+        }
+    return {
+        "segment": "founders exploring a fresh startup wedge under uncertainty",
+        "differentiator": "showing the startup as a living system instead of a static business plan",
+        "headline": "Build the startup mirror world before burning real-world time",
+    }
+
+
+def base_prompt_fields(request: StartupRequest) -> dict[str, str]:
+    profile = classify_idea(request.idea)
+    return {
+        "idea": request.idea.strip() or "Autonomous founder assistant",
+        "audience": request.audience.strip() or profile["segment"],
+        "problem": request.problem.strip() or "Founders move from inspiration to execution too slowly.",
+        "business_model": request.businessModel.strip()
+        or "Usage-based premium workspace with team tier.",
+        "mvp_scope": request.mvpScope.strip()
+        or "Simulation brief, multi-agent run, preview page, and launch report.",
+        "tone": request.tone.strip() or "Bold, cinematic, technically credible",
+        "constraints": request.constraints.strip()
+        or "Preserve AMD branding, ship reliably on the web, and stay hackathon-demo friendly.",
+        "seed_context": request.seedContext.strip()
+        or "No extra dossier supplied. Use the idea itself as the reality seed.",
+        "key_signals": request.keySignals.strip()
+        or "AI-native workflows, shrinking startup cycles, higher founder expectations.",
+        "simulation_goal": request.simulationGoal.strip()
+        or "Pressure-test whether the startup can earn attention, retention, and revenue.",
+        "amd_focus": request.amdFocus.strip()
+        or "Use AMD GPUs for low-latency inference, visible concurrency, and demo impact.",
+    }
 
 
 def agent_roster() -> list[dict[str, str]]:
@@ -91,31 +203,84 @@ def agent_roster() -> list[dict[str, str]]:
     ]
 
 
-def classify_idea(idea: str) -> dict[str, str]:
-    text = idea.lower()
-    if any(token in text for token in ["student", "study", "exam", "campus", "learning"]):
-        return {
-            "segment": "student founders and education-focused builders",
-            "differentiator": "turning chaotic exam or study pressure into an adaptive execution loop",
-            "headline": "Simulate a better path from study stress to daily execution",
-        }
-    if any(token in text for token in ["fitness", "workout", "gym", "diet", "health"]):
-        return {
-            "segment": "fitness newcomers and habit-driven self-improvement users",
-            "differentiator": "making motivation measurable through visible accountability loops",
-            "headline": "Simulate the habit system before shipping the product",
-        }
-    if any(token in text for token in ["creator", "content", "youtube", "instagram", "tiktok", "newsletter"]):
-        return {
-            "segment": "solo creators trying to maintain consistency without burning out",
-            "differentiator": "compressing ideation, packaging, and distribution into one workflow",
-            "headline": "Simulate creator momentum before the content calendar slips",
-        }
-    return {
-        "segment": "founders exploring a fresh startup wedge under uncertainty",
-        "differentiator": "showing the startup as a living system instead of a static business plan",
-        "headline": "Build the startup mirror world before burning real-world time",
-    }
+def update_job(job_id: str, **patch: Any) -> None:
+    with jobs_lock:
+        if job_id in jobs:
+            jobs[job_id].update(patch)
+
+
+def read_job(job_id: str) -> dict[str, Any]:
+    with jobs_lock:
+        if job_id not in jobs:
+            return {"status": "not found"}
+        return deepcopy(jobs[job_id])
+
+
+def append_activity(job_id: str, agent: str, text: str, done: bool = False) -> None:
+    with jobs_lock:
+        job = jobs[job_id]
+        job["activity"].append(
+            {
+                "id": f"{job_id}_{len(job['activity']) + 1}",
+                "agent": agent,
+                "text": text,
+                "ts": time.strftime("%H:%M:%S"),
+                "done": done,
+            }
+        )
+
+
+def set_stage_state(job_id: str, stage_key: str, status: str) -> None:
+    with jobs_lock:
+        job = jobs[job_id]
+        for stage in job["stages"]:
+            if status == "running" and stage["status"] == "running":
+                stage["status"] = "complete"
+            if stage["key"] == stage_key:
+                stage["status"] = status
+                break
+
+
+def set_progress(job_id: str, readiness: int) -> None:
+    with jobs_lock:
+        jobs[job_id]["readiness"] = readiness
+
+
+def parse_json_content(content: str) -> dict[str, Any]:
+    text = content.strip()
+    if text.startswith("```"):
+        parts = text.split("```")
+        text = parts[1] if len(parts) > 1 else text
+        text = text.replace("json", "", 1).strip()
+    return json.loads(text)
+
+
+def run_json_agent(
+    name: str,
+    mission: str,
+    schema: dict[str, Any],
+    payload: dict[str, Any],
+    context: dict[str, Any],
+) -> dict[str, Any]:
+    llm = get_llm()
+    prompt = (
+        f"You are {name} inside an AI startup simulator called Autonomous Startup-in-a-Box.\n"
+        f"Mission: {mission}\n\n"
+        "Respond with valid JSON only and match this schema shape exactly:\n"
+        f"{json.dumps(schema, ensure_ascii=False, indent=2)}\n\n"
+        "Reality seed:\n"
+        f"{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
+        "Upstream context:\n"
+        f"{json.dumps(context, ensure_ascii=False, indent=2)}\n\n"
+        "Requirements:\n"
+        "- Keep output concise but specific.\n"
+        "- Preserve AMD branding naturally where useful.\n"
+        "- Be concrete enough that the result can drive a product demo.\n"
+        "- Do not wrap JSON in markdown fences.\n"
+    )
+    response = llm.invoke(prompt)
+    content = response.content if isinstance(response.content, str) else str(response.content)
+    return parse_json_content(content)
 
 
 def build_preview_html(title: str, thesis: str, channels: list[str], score: int) -> str:
@@ -230,45 +395,40 @@ def build_markdown_report(report: dict[str, Any]) -> str:
 
 
 def build_mock_report(request: StartupRequest) -> dict[str, Any]:
-    idea = request.idea.strip() or "Autonomous founder assistant"
-    tone = request.tone.strip() or "Bold, cinematic, technically credible"
-    audience = request.audience.strip() or classify_idea(idea)["segment"]
-    problem = request.problem.strip() or "Founders move from inspiration to execution too slowly."
-    business_model = request.businessModel.strip() or "Usage-based premium workspace with team tier."
-    mvp_scope = request.mvpScope.strip() or "Simulation brief, multi-agent run, preview page, and launch report."
-    seed_context = request.seedContext.strip() or "No extra dossier supplied. Use the idea itself as the reality seed."
-    key_signals = request.keySignals.strip() or "AI-native workflows, shrinking startup cycles, higher founder expectations."
-    simulation_goal = request.simulationGoal.strip() or "Pressure-test whether the startup can earn attention, retention, and revenue."
-    amd_focus = request.amdFocus.strip() or "Use AMD GPUs for low-latency inference, visible concurrency, and demo impact."
-
-    profile = classify_idea(idea)
+    base = base_prompt_fields(request)
+    profile = classify_idea(base["idea"])
     title = "Autonomous Startup-in-a-Box"
     readiness = 88
-    launch_channels = ["Founder communities", "LinkedIn launch thread", "Short-form demo video", "Hackathon stage demo"]
+    launch_channels = [
+        "Founder communities",
+        "LinkedIn launch thread",
+        "Short-form demo video",
+        "Hackathon stage demo",
+    ]
     preview_html = build_preview_html(title, profile["headline"], launch_channels, readiness)
 
     return {
         "title": title,
         "readiness_score": readiness,
         "executive_summary": (
-            f"{idea} becomes more compelling when framed as a live startup world simulation: "
+            f"{base['idea']} becomes more compelling when framed as a live startup world simulation: "
             "the user submits a startup premise, agents model the company from multiple disciplines, "
             "and AMD-backed inference makes their collaboration visible in real time."
         ),
         "startup_brief": {
-            "idea": idea,
-            "audience": audience,
-            "problem": problem,
-            "business_model": business_model,
-            "tone": tone,
-            "constraints": request.constraints.strip() or "Preserve AMD branding, ship reliably on the web, and stay hackathon-demo friendly.",
-            "seed_context": seed_context,
-            "key_signals": key_signals,
-            "amd_focus": amd_focus,
+            "idea": base["idea"],
+            "audience": base["audience"],
+            "problem": base["problem"],
+            "business_model": base["business_model"],
+            "tone": base["tone"],
+            "constraints": base["constraints"],
+            "seed_context": base["seed_context"],
+            "key_signals": base["key_signals"],
+            "amd_focus": base["amd_focus"],
         },
         "simulation_world": {
-            "goal": simulation_goal,
-            "hypothesis": f"If {idea} is positioned around {profile['differentiator']}, it can win attention quickly.",
+            "goal": base["simulation_goal"],
+            "hypothesis": f"If {base['idea']} is positioned around {profile['differentiator']}, it can win attention quickly.",
             "market_forces": [
                 "Users expect instant strategy synthesis, not static documents.",
                 "Founders trust products more when they can inspect the agent reasoning process.",
@@ -288,7 +448,7 @@ def build_mock_report(request: StartupRequest) -> dict[str, Any]:
         "agents": agent_roster(),
         "outputs": {
             "validation": {
-                "market_opportunity": f"{audience} already feel the pain of {problem.lower()}",
+                "market_opportunity": f"{base['audience']} already feel the pain of {base['problem'].lower()}",
                 "why_now": "AI agents are now credible enough to turn startup planning into an inspectable runtime experience.",
                 "differentiation": (
                     "This product does not just answer questions. It stages a living company simulation "
@@ -315,7 +475,7 @@ def build_mock_report(request: StartupRequest) -> dict[str, Any]:
                     "Product manager",
                     "Investor or hackathon judge",
                 ],
-                "first_release_scope": mvp_scope,
+                "first_release_scope": base["mvp_scope"],
             },
             "engineering": {
                 "stack": [
@@ -326,7 +486,7 @@ def build_mock_report(request: StartupRequest) -> dict[str, Any]:
                 ],
                 "architecture": [
                     "Frontend runs the cinematic simulation shell and polling loop.",
-                    "Backend manages job lifecycle, prompt packaging, and report generation.",
+                    "Backend manages job lifecycle, prompt packaging, and per-agent execution.",
                     "AMD model endpoint is injected by environment variables for hackathon or cloud deployment.",
                     "Mock mode remains available so the demo can still run without live compute.",
                 ],
@@ -367,130 +527,424 @@ def build_mock_report(request: StartupRequest) -> dict[str, Any]:
     }
 
 
-def build_prompt_for_llm(request: StartupRequest) -> str:
-    payload = {
-        "idea": request.idea,
-        "audience": request.audience,
-        "problem": request.problem,
-        "business_model": request.businessModel,
-        "mvp_scope": request.mvpScope,
-        "tone": request.tone,
-        "constraints": request.constraints,
-        "seed_context": request.seedContext,
-        "key_signals": request.keySignals,
-        "simulation_goal": request.simulationGoal,
-        "amd_focus": request.amdFocus,
+def build_mock_agent_outputs(request: StartupRequest) -> dict[str, Any]:
+    report = build_mock_report(request)
+    return {
+        "ceo": {
+            "title": report["title"],
+            "executive_summary": report["executive_summary"],
+            "audience": report["startup_brief"]["audience"],
+            "problem": report["startup_brief"]["problem"],
+            "business_model": report["startup_brief"]["business_model"],
+            "goal": report["simulation_world"]["goal"],
+            "hypothesis": report["simulation_world"]["hypothesis"],
+            "market_opportunity": report["outputs"]["validation"]["market_opportunity"],
+            "why_now": report["outputs"]["validation"]["why_now"],
+            "differentiation": report["outputs"]["validation"]["differentiation"],
+            "market_forces": report["simulation_world"]["market_forces"],
+            "intervention_levers": report["simulation_world"]["intervention_levers"],
+            "simulation_modes": report["simulation_world"]["simulation_modes"],
+            "success_metrics": [
+                "Judges understand the product in under 30 seconds",
+                "Founders want to rerun the simulation with new constraints",
+                "AMD compute advantage feels visible, not hidden",
+            ],
+        },
+        "product": report["outputs"]["product"],
+        "engineering": {
+            "stack": report["outputs"]["engineering"]["stack"],
+            "architecture": report["outputs"]["engineering"]["architecture"],
+            "preview_thesis": report["outputs"]["product"]["north_star"],
+        },
+        "marketing": report["outputs"]["marketing"],
+        "finance": report["outputs"]["finance"],
+        "critic": report["outputs"]["critic"] | {"risks": report["outputs"]["validation"]["risks"]},
     }
-    schema = {
-        "title": "string",
-        "readiness_score": 0,
-        "executive_summary": "string",
-        "startup_brief": {
-            "idea": "string",
-            "audience": "string",
-            "problem": "string",
-            "business_model": "string",
-            "tone": "string",
-            "constraints": "string",
-            "seed_context": "string",
-            "key_signals": "string",
-            "amd_focus": "string",
-        },
-        "simulation_world": {
-            "goal": "string",
-            "hypothesis": "string",
-            "market_forces": ["string"],
-            "intervention_levers": ["string"],
-            "simulation_modes": ["string"],
-        },
-        "agents": [
-            {
-                "name": "string",
-                "role": "string",
-                "goal": "string",
-                "style": "string",
-                "deliverable": "string",
-            }
-        ],
-        "outputs": {
-            "validation": {
-                "market_opportunity": "string",
-                "why_now": "string",
-                "differentiation": "string",
-                "risks": ["string"],
-            },
-            "product": {
-                "north_star": "string",
-                "core_loop": "string",
-                "mvp_features": ["string"],
-                "persona_tracks": ["string"],
-                "first_release_scope": "string",
-            },
-            "engineering": {
-                "stack": ["string"],
-                "architecture": ["string"],
-                "preview_html": "full html document string",
-            },
-            "marketing": {
-                "narrative": "string",
-                "channels": ["string"],
-                "hook_lines": ["string"],
-                "judge_pitch": "string",
-            },
-            "finance": {
-                "pricing": "string",
-                "revenue_logic": "string",
-                "cost_drivers": ["string"],
-                "first_year": "string",
-            },
-            "critic": {
-                "main_failure_mode": "string",
-                "hardest_assumption": "string",
-                "fix_first": ["string"],
-            },
-        },
-    }
-    return (
-        "You are the orchestration brain for an AMD hackathon product called "
-        "'Autonomous Startup-in-a-Box'. Generate a powerful, credible startup simulation report. "
-        "The response must be valid JSON only, with no markdown fences or commentary.\n\n"
-        f"Request payload:\n{json.dumps(payload, ensure_ascii=False, indent=2)}\n\n"
-        f"JSON schema shape:\n{json.dumps(schema, ensure_ascii=False, indent=2)}\n\n"
-        "Requirements:\n"
-        "- Preserve AMD branding and mention AMD compute advantage naturally.\n"
-        "- Make the product feel like a visible multi-agent company simulator.\n"
-        "- Keep claims ambitious but believable for a hackathon.\n"
-        "- preview_html must be a complete responsive HTML document using Tailwind CDN.\n"
-        "- readiness_score must be between 60 and 96.\n"
-        "- All strings should be concise and high-signal.\n"
+
+
+def build_report_from_agents(request: StartupRequest, outputs: dict[str, Any]) -> dict[str, Any]:
+    base = base_prompt_fields(request)
+    ceo = outputs["ceo"]
+    product = outputs["product"]
+    engineering = outputs["engineering"]
+    marketing = outputs["marketing"]
+    finance = outputs["finance"]
+    critic = outputs["critic"]
+
+    agent_list = agent_roster()
+    preview_html = build_preview_html(
+        ceo.get("title", "Autonomous Startup-in-a-Box"),
+        engineering.get("preview_thesis", ceo.get("hypothesis", marketing.get("narrative", ""))),
+        marketing.get("channels", []),
+        int(outputs.get("score", 86)),
     )
 
+    return {
+        "title": ceo.get("title", "Autonomous Startup-in-a-Box"),
+        "readiness_score": int(outputs.get("score", 86)),
+        "executive_summary": ceo.get("executive_summary", marketing.get("judge_pitch", "")),
+        "startup_brief": {
+            "idea": base["idea"],
+            "audience": ceo.get("audience", base["audience"]),
+            "problem": ceo.get("problem", base["problem"]),
+            "business_model": ceo.get("business_model", base["business_model"]),
+            "tone": base["tone"],
+            "constraints": base["constraints"],
+            "seed_context": base["seed_context"],
+            "key_signals": base["key_signals"],
+            "amd_focus": base["amd_focus"],
+        },
+        "simulation_world": {
+            "goal": ceo.get("goal", base["simulation_goal"]),
+            "hypothesis": ceo.get("hypothesis", ""),
+            "market_forces": ceo.get("market_forces", []),
+            "intervention_levers": ceo.get("intervention_levers", []),
+            "simulation_modes": ceo.get("simulation_modes", []),
+        },
+        "agents": agent_list,
+        "outputs": {
+            "validation": {
+                "market_opportunity": ceo.get("market_opportunity", ""),
+                "why_now": ceo.get("why_now", ""),
+                "differentiation": ceo.get("differentiation", ""),
+                "risks": critic.get("risks", []),
+            },
+            "product": {
+                "north_star": product.get("north_star", ""),
+                "core_loop": product.get("core_loop", ""),
+                "mvp_features": product.get("mvp_features", []),
+                "persona_tracks": product.get("persona_tracks", []),
+                "first_release_scope": product.get("first_release_scope", base["mvp_scope"]),
+            },
+            "engineering": {
+                "stack": engineering.get("stack", []),
+                "architecture": engineering.get("architecture", []),
+                "preview_html": preview_html,
+            },
+            "marketing": {
+                "narrative": marketing.get("narrative", ""),
+                "channels": marketing.get("channels", []),
+                "hook_lines": marketing.get("hook_lines", []),
+                "judge_pitch": marketing.get("judge_pitch", ""),
+            },
+            "finance": {
+                "pricing": finance.get("pricing", ""),
+                "revenue_logic": finance.get("revenue_logic", ""),
+                "cost_drivers": finance.get("cost_drivers", []),
+                "first_year": finance.get("first_year", ""),
+            },
+            "critic": {
+                "main_failure_mode": critic.get("main_failure_mode", ""),
+                "hardest_assumption": critic.get("hardest_assumption", ""),
+                "fix_first": critic.get("fix_first", []),
+            },
+        },
+    }
 
-def generate_report(request: StartupRequest) -> dict[str, Any]:
-    if USE_MOCK:
-        return build_mock_report(request)
 
-    prompt = build_prompt_for_llm(request)
-    response = llm.invoke(prompt)
-    content = response.content if isinstance(response.content, str) else str(response.content)
-    data = json.loads(content)
-    return data
+def compute_score(outputs: dict[str, Any]) -> int:
+    product_features = len(outputs["product"].get("mvp_features", []))
+    launch_channels = len(outputs["marketing"].get("channels", []))
+    critic_actions = len(outputs["critic"].get("fix_first", []))
+    score = 72 + min(product_features, 5) * 2 + min(launch_channels, 4) * 2 + min(critic_actions, 3)
+    return max(68, min(score, 95))
+
+
+def live_agent_outputs(request: StartupRequest, job_id: str) -> dict[str, Any]:
+    payload = base_prompt_fields(request)
+
+    ceo_schema = {
+        "title": "string",
+        "executive_summary": "string",
+        "audience": "string",
+        "problem": "string",
+        "business_model": "string",
+        "goal": "string",
+        "hypothesis": "string",
+        "market_opportunity": "string",
+        "why_now": "string",
+        "differentiation": "string",
+        "market_forces": ["string"],
+        "intervention_levers": ["string"],
+        "simulation_modes": ["string"],
+        "success_metrics": ["string"],
+    }
+    product_schema = {
+        "north_star": "string",
+        "core_loop": "string",
+        "mvp_features": ["string"],
+        "persona_tracks": ["string"],
+        "first_release_scope": "string",
+    }
+    engineering_schema = {
+        "stack": ["string"],
+        "architecture": ["string"],
+        "preview_thesis": "string",
+    }
+    marketing_schema = {
+        "narrative": "string",
+        "channels": ["string"],
+        "hook_lines": ["string"],
+        "judge_pitch": "string",
+    }
+    finance_schema = {
+        "pricing": "string",
+        "revenue_logic": "string",
+        "cost_drivers": ["string"],
+        "first_year": "string",
+    }
+    critic_schema = {
+        "main_failure_mode": "string",
+        "hardest_assumption": "string",
+        "fix_first": ["string"],
+        "risks": ["string"],
+    }
+
+    append_activity(job_id, "CEO Agent", "Parsing the reality seed and framing the company thesis.")
+    set_stage_state(job_id, "strategy", "running")
+    ceo = run_json_agent(
+        "CEO Agent",
+        "Define the startup thesis, user wedge, world model, and validation story.",
+        ceo_schema,
+        payload,
+        {"amd_runtime": payload["amd_focus"]},
+    )
+    set_stage_state(job_id, "strategy", "complete")
+    set_progress(job_id, 24)
+    append_activity(
+        job_id,
+        "CEO Agent",
+        f"Locked the thesis: {ceo['hypothesis']}",
+        done=True,
+    )
+
+    set_stage_state(job_id, "world", "running")
+    append_activity(job_id, "CEO Agent", "Publishing market forces and simulation modes to the rest of the company.")
+    set_stage_state(job_id, "world", "complete")
+    set_progress(job_id, 34)
+
+    set_stage_state(job_id, "agents", "running")
+    append_activity(job_id, "Orchestrator", "Spawning specialist agents and distributing the CEO brief.")
+    set_stage_state(job_id, "agents", "complete")
+    set_progress(job_id, 40)
+
+    set_stage_state(job_id, "build", "running")
+    append_activity(job_id, "Product Agent", "Scoping the MVP loop and founder journey.")
+    append_activity(job_id, "Engineer Agent", "Designing the system stack and interactive preview path.")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        product_future = pool.submit(
+            run_json_agent,
+            "Product Agent",
+            "Define the founder-facing MVP, the sticky loop, and what the first release must include.",
+            product_schema,
+            payload,
+            {"ceo": ceo},
+        )
+        engineering_future = pool.submit(
+            run_json_agent,
+            "Engineer Agent",
+            "Translate the startup thesis into a practical web architecture and preview-ready build story.",
+            engineering_schema,
+            payload,
+            {"ceo": ceo, "product": "in progress"},
+        )
+        product = product_future.result()
+        engineering = engineering_future.result()
+    set_stage_state(job_id, "build", "complete")
+    set_progress(job_id, 58)
+    append_activity(
+        job_id,
+        "Product Agent",
+        f"Scoped {len(product['mvp_features'])} MVP features around the core loop.",
+        done=True,
+    )
+    append_activity(
+        job_id,
+        "Engineer Agent",
+        f"Proposed stack: {', '.join(engineering['stack'][:3])}",
+        done=True,
+    )
+
+    append_activity(job_id, "Marketing Agent", "Crafting the launch narrative and first-wave channels.")
+    append_activity(job_id, "Finance Agent", "Stress-testing pricing, cost drivers, and first-year logic.")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        marketing_future = pool.submit(
+            run_json_agent,
+            "Marketing Agent",
+            "Create the launch narrative, hook lines, and distribution channels for a demo-stage startup.",
+            marketing_schema,
+            payload,
+            {"ceo": ceo, "product": product},
+        )
+        finance_future = pool.submit(
+            run_json_agent,
+            "Finance Agent",
+            "Evaluate pricing, revenue logic, and operational cost drivers for the product direction.",
+            finance_schema,
+            payload,
+            {"ceo": ceo, "product": product, "engineering": engineering},
+        )
+        marketing = marketing_future.result()
+        finance = finance_future.result()
+
+    set_stage_state(job_id, "launch", "complete")
+    set_progress(job_id, 69)
+    append_activity(
+        job_id,
+        "Marketing Agent",
+        f"Selected {len(marketing['channels'])} launch channels and a judge-facing pitch.",
+        done=True,
+    )
+
+    set_stage_state(job_id, "finance", "running")
+    set_stage_state(job_id, "finance", "complete")
+    set_progress(job_id, 78)
+    append_activity(
+        job_id,
+        "Finance Agent",
+        f"Defined pricing model: {finance['pricing']}",
+        done=True,
+    )
+
+    set_stage_state(job_id, "critic", "running")
+    append_activity(job_id, "Critic Agent", "Attacking the plan before the judges or market can.")
+    critic = run_json_agent(
+        "Critic Agent",
+        "Identify the main failure mode, the hardest assumption, and the highest-leverage fixes.",
+        critic_schema,
+        payload,
+        {
+            "ceo": ceo,
+            "product": product,
+            "engineering": engineering,
+            "marketing": marketing,
+            "finance": finance,
+        },
+    )
+    set_stage_state(job_id, "critic", "complete")
+    set_progress(job_id, 88)
+    append_activity(
+        job_id,
+        "Critic Agent",
+        f"Flagged the core risk: {critic['main_failure_mode']}",
+        done=True,
+    )
+
+    return {
+        "ceo": ceo,
+        "product": product,
+        "engineering": engineering,
+        "marketing": marketing,
+        "finance": finance,
+        "critic": critic,
+    }
+
+
+def mock_agent_outputs(request: StartupRequest, job_id: str) -> dict[str, Any]:
+    outputs = build_mock_agent_outputs(request)
+
+    set_stage_state(job_id, "strategy", "running")
+    append_activity(job_id, "CEO Agent", "Mock runtime framing the company thesis.")
+    time.sleep(0.4)
+    set_stage_state(job_id, "strategy", "complete")
+    set_progress(job_id, 22)
+    append_activity(job_id, "CEO Agent", outputs["ceo"]["hypothesis"], done=True)
+
+    set_stage_state(job_id, "world", "running")
+    append_activity(job_id, "CEO Agent", "Mock runtime publishing market forces and intervention levers.")
+    time.sleep(0.3)
+    set_stage_state(job_id, "world", "complete")
+    set_progress(job_id, 33)
+
+    set_stage_state(job_id, "agents", "running")
+    append_activity(job_id, "Orchestrator", "Mock runtime spawning specialist agents.")
+    time.sleep(0.2)
+    set_stage_state(job_id, "agents", "complete")
+    set_progress(job_id, 40)
+
+    set_stage_state(job_id, "build", "running")
+    append_activity(job_id, "Product Agent", "Mock runtime scoping the MVP.")
+    append_activity(job_id, "Engineer Agent", "Mock runtime sketching the system architecture.")
+    time.sleep(0.5)
+    set_stage_state(job_id, "build", "complete")
+    set_progress(job_id, 58)
+    append_activity(job_id, "Product Agent", outputs["product"]["north_star"], done=True)
+    append_activity(job_id, "Engineer Agent", ", ".join(outputs["engineering"]["stack"]), done=True)
+
+    set_stage_state(job_id, "launch", "running")
+    append_activity(job_id, "Marketing Agent", "Mock runtime building the launch narrative.")
+    time.sleep(0.3)
+    set_stage_state(job_id, "launch", "complete")
+    set_progress(job_id, 69)
+    append_activity(job_id, "Marketing Agent", outputs["marketing"]["narrative"], done=True)
+
+    set_stage_state(job_id, "finance", "running")
+    append_activity(job_id, "Finance Agent", "Mock runtime evaluating the business model.")
+    time.sleep(0.3)
+    set_stage_state(job_id, "finance", "complete")
+    set_progress(job_id, 78)
+    append_activity(job_id, "Finance Agent", outputs["finance"]["pricing"], done=True)
+
+    set_stage_state(job_id, "critic", "running")
+    append_activity(job_id, "Critic Agent", "Mock runtime challenging the plan.")
+    time.sleep(0.4)
+    set_stage_state(job_id, "critic", "complete")
+    set_progress(job_id, 88)
+    append_activity(job_id, "Critic Agent", outputs["critic"]["main_failure_mode"], done=True)
+
+    return outputs
 
 
 def run_startup_simulation(job_id: str, request: StartupRequest) -> None:
-    jobs[job_id] = {"status": "running", "report": None, "output": None}
+    with jobs_lock:
+        jobs[job_id] = {
+            "status": "running",
+            "report": None,
+            "output": None,
+            "error": None,
+            "activity": [],
+            "stages": fresh_stages(),
+            "readiness": 6,
+            "runtime": {
+                "mock_mode": USE_MOCK,
+                "model": AMD_LLM_MODEL,
+                "base_url": AMD_LLM_BASE_URL,
+                "mode": "multi-agent",
+            },
+            "started_at": int(time.time() * 1000),
+            "completed_at": None,
+        }
+
+    append_activity(job_id, "Orchestrator", "Reality seed locked. Preparing the AMD multi-agent runtime.", done=True)
     try:
         if USE_MOCK:
-            time.sleep(2)
-        report = generate_report(request)
+            outputs = mock_agent_outputs(request, job_id)
+        else:
+            outputs = live_agent_outputs(request, job_id)
+
+        outputs["score"] = compute_score(outputs)
+        set_stage_state(job_id, "report", "running")
+        append_activity(job_id, "Orchestrator", "Synthesizing agent outputs into the final startup-world report.")
+        report = build_report_from_agents(request, outputs)
         output = build_markdown_report(report)
-        jobs[job_id] = {
-            "status": "completed",
-            "report": report,
-            "output": output,
-        }
+        set_stage_state(job_id, "report", "complete")
+        append_activity(job_id, "Orchestrator", "Final report published to the dashboard.", done=True)
+        update_job(
+            job_id,
+            status="completed",
+            report=report,
+            output=output,
+            readiness=report["readiness_score"],
+            completed_at=int(time.time() * 1000),
+        )
     except Exception as exc:
-        jobs[job_id] = {"status": "failed", "error": str(exc)}
+        append_activity(job_id, "Orchestrator", f"Simulation failed: {exc}")
+        update_job(
+            job_id,
+            status="failed",
+            error=str(exc),
+            completed_at=int(time.time() * 1000),
+        )
 
 
 @app.post("/generate-startup")
@@ -504,13 +958,24 @@ async def generate_startup(request: StartupRequest, background_tasks: Background
             "mock_mode": USE_MOCK,
             "model": AMD_LLM_MODEL,
             "base_url": AMD_LLM_BASE_URL,
+            "mode": "multi-agent",
         },
     }
 
 
 @app.get("/status/{job_id}")
 async def get_status(job_id: str):
-    return jobs.get(job_id, {"status": "not found"})
+    return read_job(job_id)
+
+
+@app.get("/health")
+async def health():
+    return {
+        "ok": True,
+        "mock_mode": USE_MOCK,
+        "model": AMD_LLM_MODEL,
+        "base_url": AMD_LLM_BASE_URL,
+    }
 
 
 if __name__ == "__main__":

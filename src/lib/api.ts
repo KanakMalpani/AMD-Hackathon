@@ -1,4 +1,4 @@
-import type { PromptData, SimulationReport } from "@/lib/app-store";
+import type { ActivityMsg, PromptData, SimulationReport, Stage } from "@/lib/app-store";
 
 const DEFAULT_API_BASE = "http://localhost:8001";
 
@@ -29,6 +29,17 @@ export type JobStatusResponse = {
   output?: string;
   report?: SimulationReport;
   error?: string;
+  activity?: ActivityMsg[];
+  stages?: Stage[];
+  readiness?: number;
+  started_at?: number;
+  completed_at?: number | null;
+  runtime?: {
+    mock_mode: boolean;
+    model: string;
+    base_url: string;
+    mode?: string;
+  };
 };
 
 export async function generateStartup(data: PromptData): Promise<GenerateStartupResponse> {

@@ -16,7 +16,7 @@ export function AgentActivityFeed({ messages }: { messages: ActivityMsg[] }) {
       style={{ background: "#080809", borderColor: "#2A2A2A" }}
     >
       {messages.length === 0 && (
-        <div className="text-weak">// agents idle — run the simulation to begin</div>
+        <div className="text-weak">// agents idle - run the simulation to begin</div>
       )}
       <AnimatePresence initial={false}>
         {messages.map((m) => (
