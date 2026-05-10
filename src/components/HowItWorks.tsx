@@ -43,7 +43,7 @@ export function HowItWorks() {
             From idea to startup world
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Autonomous Startup-in-a-Box turns a rough concept into a visible multi-agent
+            LaunchMyIdea AI turns a rough concept into a visible multi-agent
             company simulation.
           </p>
         </div>

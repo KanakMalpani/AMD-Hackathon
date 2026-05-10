@@ -10,14 +10,14 @@ export function Footer() {
             <Rocket className="h-3.5 w-3.5 text-white" />
           </span>
           <span className="font-display text-sm font-semibold">
-            Autonomous Startup<span className="text-primary"> Box</span>
+            LaunchMyIdea<span className="text-primary"> AI</span>
           </span>
         </div>
         <div className="flex items-center gap-6 text-xs text-weak">
           <Link to="/features" className="story-link hover:text-foreground">Features</Link>
           <Link to="/how-it-works" className="story-link hover:text-foreground">How It Works</Link>
         </div>
-        <div className="text-xs text-weak">© 2026 Autonomous Startup-in-a-Box · AMD hackathon build</div>
+        <div className="text-xs text-weak">© 2026 LaunchMyIdea AI · AMD hackathon build</div>
       </div>
     </footer>
   );

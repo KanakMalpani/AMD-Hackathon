@@ -27,7 +27,7 @@ import { generateStartup, getJobStatus, type JobStatusResponse } from "@/lib/api
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/projects/$projectId/simulation")({
-  head: () => ({ meta: [{ title: "Simulation - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Simulation - LaunchMyIdea AI" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ autostart: s.autostart ? 1 : undefined }),
   component: SimulationPage,
 });
@@ -49,7 +49,7 @@ function fallbackPromptFromProject(project: { idea: string; title: string }): Pr
 }
 
 function buildBrowserFallbackReport(prompt: PromptData): SimulationReport {
-  const idea = prompt.idea || "Autonomous startup world";
+  const idea = prompt.idea || "LaunchMyIdea AI simulation";
   const audience = prompt.audience || "hackathon judges, founders, and technical builders";
   const problem = prompt.problem || "founders need a faster way to validate and pressure-test startup ideas";
   const businessModel = prompt.businessModel || "pro workspace subscription with team expansion";
@@ -61,7 +61,7 @@ function buildBrowserFallbackReport(prompt: PromptData): SimulationReport {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <title>Autonomous Startup-in-a-Box</title>
+  <title>LaunchMyIdea AI</title>
 </head>
 <body class="min-h-screen bg-[#050816] text-white">
   <main class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16">
@@ -86,7 +86,7 @@ function buildBrowserFallbackReport(prompt: PromptData): SimulationReport {
 </html>`;
 
   return {
-    title: "Autonomous Startup-in-a-Box",
+    title: "LaunchMyIdea AI",
     readiness_score: readiness,
     executive_summary:
       "The public site is running in browser demo mode, but it still executes the full startup-world flow so judges can inspect the agent process and final artifacts.",

@@ -7,7 +7,7 @@ import { ideaToTitle, store, useStore, type PromptData } from "@/lib/app-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/projects/$projectId/prompts")({
-  head: () => ({ meta: [{ title: "Simulation Brief - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Simulation Brief - LaunchMyIdea AI" }] }),
   component: PromptsPage,
 });
 

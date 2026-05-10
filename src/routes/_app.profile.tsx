@@ -7,7 +7,7 @@ import { AppLayout, Topbar } from "@/components/AppShell";
 import { store, useStore } from "@/lib/app-store";
 
 export const Route = createFileRoute("/_app/profile")({
-  head: () => ({ meta: [{ title: "Profile - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Profile - LaunchMyIdea AI" }] }),
   component: ProfilePage,
 });
 

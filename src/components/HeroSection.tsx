@@ -67,7 +67,7 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.7 }}
             className="mt-6 max-w-[640px] text-base text-muted-foreground sm:text-lg"
           >
-            Autonomous Startup-in-a-Box transforms a raw idea into an AMD-powered startup world:
+            LaunchMyIdea AI transforms a raw idea into an AMD-powered startup world:
             strategy, agent cast, MVP build plan, launch narrative, revenue logic, and a
             critic-reviewed simulation report you can inspect live.
           </motion.p>

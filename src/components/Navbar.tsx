@@ -26,7 +26,7 @@ export function Navbar() {
             <Rocket className="h-4 w-4 text-white" />
           </span>
           <span className="font-display text-lg font-semibold tracking-tight">
-            Autonomous Startup<span className="text-primary"> Box</span>
+            LaunchMyIdea<span className="text-primary"> AI</span>
           </span>
         </Link>
 

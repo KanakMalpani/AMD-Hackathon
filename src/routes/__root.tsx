@@ -76,14 +76,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Autonomous Startup-in-a-Box" },
+      { title: "LaunchMyIdea AI" },
       {
         name: "description",
         content:
           "A visible multi-agent startup simulator that validates ideas, builds an MVP plan, drafts launch strategy, and demonstrates AMD-powered AI execution.",
       },
       { name: "author", content: "AMD Hackathon Team" },
-      { property: "og:title", content: "Autonomous Startup-in-a-Box" },
+      { property: "og:title", content: "LaunchMyIdea AI" },
       {
         property: "og:description",
         content:
@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Autonomous Startup-in-a-Box" },
+      { name: "twitter:title", content: "LaunchMyIdea AI" },
       {
         name: "twitter:description",
         content:

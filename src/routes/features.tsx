@@ -4,7 +4,7 @@ import { FeaturesSection } from "@/components/FeaturesSection";
 export const Route = createFileRoute("/features")({
   head: () => ({
     meta: [
-      { title: "Features - Autonomous Startup-in-a-Box" },
+      { title: "Features - LaunchMyIdea AI" },
       {
         name: "description",
         content:

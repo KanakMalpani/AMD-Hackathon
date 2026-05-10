@@ -1,6 +1,6 @@
 <div align="center">
   <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg" alt="AMD Logo" width="150"/>
-  <h1>🚀 Autonomous Startup-in-a-Box</h1>
+  <h1>🚀 LaunchMyIdea AI</h1>
   <p><strong>Powered by AMD Instinct™ & Radeon™ GPUs via ROCm</strong></p>
   
   [![Hackathon](https://img.shields.io/badge/AMD-Developer_Hackathon-ED1C24?style=for-the-badge&logo=amd&logoColor=white)](https://www.amd.com/en/developer.html)
@@ -11,7 +11,7 @@
 
 <br/>
 
-> **Autonomous Startup-in-a-Box** is a high-concurrency, multi-agent AI system that transforms a simple idea into a structured startup plan. By orchestrating **6 specialized AI agents** that collaborate in parallel, it builds your next venture in seconds—showcasing the raw compute power of AMD hardware.
+> **LaunchMyIdea AI** is a high-concurrency, multi-agent AI system that transforms a simple idea into a structured startup plan. By orchestrating **6 specialized AI agents** that collaborate in parallel, it builds your next venture in seconds—showcasing the raw compute power of AMD hardware.
 
 ---
 
@@ -117,6 +117,20 @@ The frontend now expects the backend to return a structured simulation report wi
 - simulation world and agent roster
 - validation, product, engineering, launch, finance, and critic outputs
 - live preview HTML for the generated startup artifact
+
+### Tutorial Video
+This repo now includes a 30-second Remotion tutorial that explains how to use the site and summarizes the README.
+
+Commands:
+```bash
+npm run tutorial:studio
+npm run tutorial:render
+```
+
+Rendered output:
+```bash
+renders/autonomous-startup-tutorial.mp4
+```
 
 ---
 

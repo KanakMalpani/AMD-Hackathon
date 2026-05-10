@@ -9,7 +9,7 @@ import { buildOutputs, personaFor } from "@/lib/mock-outputs";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/projects/$projectId/marketing")({
-  head: () => ({ meta: [{ title: "Go-To-Market - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Go-To-Market - LaunchMyIdea AI" }] }),
   component: MarketingPage,
 });
 

@@ -5,7 +5,7 @@ import { AppLayout, Topbar } from "@/components/AppShell";
 import { store, useStore } from "@/lib/app-store";
 
 export const Route = createFileRoute("/_app/settings")({
-  head: () => ({ meta: [{ title: "Settings - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Settings - LaunchMyIdea AI" }] }),
   component: SettingsPage,
 });
 

@@ -35,7 +35,7 @@ export function AuthLayout({
           <Rocket className="h-3.5 w-3.5 text-white" />
         </span>
         <span className="font-display font-semibold">
-          Autonomous Startup<span className="text-primary"> Box</span>
+          LaunchMyIdea<span className="text-primary"> AI</span>
         </span>
       </Link>
 

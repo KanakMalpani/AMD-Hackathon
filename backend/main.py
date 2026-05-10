@@ -12,7 +12,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 
-app = FastAPI(title="Autonomous Startup-in-a-Box API")
+app = FastAPI(title="LaunchMyIdea AI API")
 
 
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() in {"1", "true", "yes"}
@@ -264,7 +264,7 @@ def run_json_agent(
 ) -> dict[str, Any]:
     llm = get_llm()
     prompt = (
-        f"You are {name} inside an AI startup simulator called Autonomous Startup-in-a-Box.\n"
+        f"You are {name} inside an AI startup simulator called LaunchMyIdea AI.\n"
         f"Mission: {mission}\n\n"
         "Respond with valid JSON only and match this schema shape exactly:\n"
         f"{json.dumps(schema, ensure_ascii=False, indent=2)}\n\n"
@@ -294,7 +294,7 @@ def build_preview_html(title: str, thesis: str, channels: list[str], score: int)
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <title>{title} - Autonomous Startup-in-a-Box</title>
+  <title>{title} - LaunchMyIdea AI</title>
 </head>
 <body class="min-h-screen bg-[#050816] text-white">
   <main class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16">
@@ -304,7 +304,7 @@ def build_preview_html(title: str, thesis: str, channels: list[str], score: int)
     </div>
     <div class="mt-8 grid gap-10 lg:grid-cols-[1.3fr_0.7fr]">
       <section>
-        <p class="text-sm uppercase tracking-[0.4em] text-zinc-400">Autonomous Startup-in-a-Box</p>
+        <p class="text-sm uppercase tracking-[0.4em] text-zinc-400">LaunchMyIdea AI</p>
         <h1 class="mt-4 max-w-4xl text-5xl font-black leading-tight text-white">{title}</h1>
         <p class="mt-6 max-w-3xl text-lg leading-8 text-zinc-300">{thesis}</p>
         <div class="mt-8 flex flex-wrap gap-3">
@@ -342,7 +342,7 @@ def build_markdown_report(report: dict[str, Any]) -> str:
     def bullet_list(items: list[str]) -> str:
         return "\n".join(f"- {item}" for item in items)
 
-    return f"""# Autonomous Startup-in-a-Box
+    return f"""# LaunchMyIdea AI
 
 ## Executive Summary
 {report["executive_summary"]}
@@ -397,7 +397,7 @@ def build_markdown_report(report: dict[str, Any]) -> str:
 def build_mock_report(request: StartupRequest) -> dict[str, Any]:
     base = base_prompt_fields(request)
     profile = classify_idea(base["idea"])
-    title = "Autonomous Startup-in-a-Box"
+    title = "LaunchMyIdea AI"
     readiness = 88
     launch_channels = [
         "Founder communities",
@@ -573,14 +573,14 @@ def build_report_from_agents(request: StartupRequest, outputs: dict[str, Any]) -
 
     agent_list = agent_roster()
     preview_html = build_preview_html(
-        ceo.get("title", "Autonomous Startup-in-a-Box"),
+        ceo.get("title", "LaunchMyIdea AI"),
         engineering.get("preview_thesis", ceo.get("hypothesis", marketing.get("narrative", ""))),
         marketing.get("channels", []),
         int(outputs.get("score", 86)),
     )
 
     return {
-        "title": ceo.get("title", "Autonomous Startup-in-a-Box"),
+        "title": ceo.get("title", "LaunchMyIdea AI"),
         "readiness_score": int(outputs.get("score", 86)),
         "executive_summary": ceo.get("executive_summary", marketing.get("judge_pitch", "")),
         "startup_brief": {

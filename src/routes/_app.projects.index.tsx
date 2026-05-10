@@ -6,7 +6,7 @@ import { AppLayout, Topbar } from "@/components/AppShell";
 import { store, useStore, type Project } from "@/lib/app-store";
 
 export const Route = createFileRoute("/_app/projects/")({
-  head: () => ({ meta: [{ title: "Startups - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Startups - LaunchMyIdea AI" }] }),
   component: ProjectsPage,
 });
 

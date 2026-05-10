@@ -4,7 +4,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How It Works - Autonomous Startup-in-a-Box" },
+      { title: "How It Works - LaunchMyIdea AI" },
       {
         name: "description",
         content: "From one idea to a visible multi-agent company simulation in four steps.",

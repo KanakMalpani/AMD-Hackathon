@@ -9,7 +9,7 @@ import { store } from "@/lib/app-store";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
-    meta: [{ title: "Sign up - Autonomous Startup-in-a-Box" }],
+    meta: [{ title: "Sign up - LaunchMyIdea AI" }],
   }),
   component: SignupPage,
 });

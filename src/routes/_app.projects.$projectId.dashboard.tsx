@@ -4,7 +4,7 @@ import { AppLayout, Topbar } from "@/components/AppShell";
 import { useStore } from "@/lib/app-store";
 
 export const Route = createFileRoute("/_app/projects/$projectId/dashboard")({
-  head: () => ({ meta: [{ title: "Overview - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Overview - LaunchMyIdea AI" }] }),
   component: ProjectDashboardPage,
 });
 
@@ -35,7 +35,7 @@ function ProjectDashboardPage() {
     <AppLayout topbar={<Topbar project={project} />}>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-weak">Autonomous Startup-in-a-Box</div>
+          <div className="text-[10px] uppercase tracking-wider text-weak">LaunchMyIdea AI</div>
           <h2 className="font-display text-2xl font-bold tracking-tight">Startup World Overview</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             A MiroFish-inspired control surface for your startup simulation: seed brief, agent cast, AMD runtime story, and final report.

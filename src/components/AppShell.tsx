@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Play,
   Sparkles,
+  Network,
 } from "lucide-react";
 import { store, useStore, type Project } from "@/lib/app-store";
 import { useState, type ReactNode } from "react";
@@ -21,6 +22,7 @@ const projectNav = [
   { key: "dashboard", label: "Overview", icon: LayoutDashboard },
   { key: "prompts", label: "Brief", icon: Sparkles },
   { key: "simulation", label: "Simulation", icon: Activity },
+  { key: "nodes", label: "Nodes", icon: Network },
   { key: "marketing", label: "Go-To-Market", icon: Megaphone },
   { key: "statistics", label: "Insights", icon: BarChart3 },
 ] as const;
@@ -119,11 +121,32 @@ export function Sidebar({ projectId }: { projectId?: string }) {
           <Rocket className="h-4 w-4 text-white" />
         </span>
         <span className="font-display text-sm font-semibold tracking-tight">
-          Autonomous Startup<span className="text-primary"> Box</span>
+          LaunchMyIdea<span className="text-primary"> AI</span>
         </span>
       </Link>
 
       <ProjectSwitcher activeId={activeId} />
+
+      {activeId && (
+        <nav className="mt-4 space-y-1 px-3">
+          <div className="mb-2 px-3 text-[10px] uppercase tracking-wider text-weak">
+            Workspace
+          </div>
+          {projectNav.map(({ key, label, icon: Icon }) => {
+            const target = `/projects/${activeId}/${key === "dashboard" ? "dashboard" : key}`;
+            const active = pathname === target;
+            return (
+              <SideLink
+                key={key}
+                to={target}
+                label={label}
+                Icon={Icon}
+                active={active}
+              />
+            );
+          })}
+        </nav>
+      )}
 
       <nav className="mt-4 flex-1 space-y-1 px-3">
         <SideLink

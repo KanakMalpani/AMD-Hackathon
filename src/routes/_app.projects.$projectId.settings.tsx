@@ -7,7 +7,7 @@ import { store, useStore } from "@/lib/app-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/projects/$projectId/settings")({
-  head: () => ({ meta: [{ title: "Startup Settings - Autonomous Startup-in-a-Box" }] }),
+  head: () => ({ meta: [{ title: "Startup Settings - LaunchMyIdea AI" }] }),
   component: ProjectSettingsPage,
 });
 
