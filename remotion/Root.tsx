@@ -1,14 +1,17 @@
 import React from "react";
 import {Composition} from "remotion";
-import {AutonomousStartupTutorial} from "./TutorialVideo";
+import {
+  LaunchMyIdeaAITutorial,
+  launchMyIdeaDurationInFrames,
+} from "./TutorialVideo";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition
-        id="AutonomousStartupTutorial"
-        component={AutonomousStartupTutorial}
-        durationInFrames={900}
+        id="LaunchMyIdeaAITutorial"
+        component={LaunchMyIdeaAITutorial}
+        durationInFrames={launchMyIdeaDurationInFrames}
         fps={30}
         width={1920}
         height={1080}

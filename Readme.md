@@ -93,24 +93,31 @@ Example local env:
 VITE_API_BASE_URL=http://localhost:8001
 ```
 
-### AMD Runtime Configuration
+### Runtime Configuration
 This build now supports a richer startup-world simulation flow inspired by MiroFish while preserving the AMD hackathon branding.
 
 Use these environment variables for the backend:
 ```bash
-USE_MOCK=true
-AMD_LLM_BASE_URL=http://localhost:8000/v1
-AMD_LLM_MODEL=qwen-2.5-7b-instruct
-AMD_LLM_API_KEY=your_api_key
-AMD_LLM_TEMPERATURE=0.35
+USE_MOCK=false
+MODEL_API_BASE_URL=https://openrouter.ai/api/v1
+MODEL_API_MODEL=openrouter/auto
+MODEL_API_KEY=your_api_key
+MODEL_API_TEMPERATURE=0.25
 ```
 
-To connect to AMD-hosted model APIs after the demo shell is ready:
-- deploy or run an OpenAI-compatible endpoint on AMD infrastructure
-- set `USE_MOCK=false`
-- point `AMD_LLM_BASE_URL` to that endpoint
-- set `AMD_LLM_MODEL` to the served model name
+Why this default is used:
+- `openrouter/auto` is OpenRouter's official auto-router, which chooses from a curated pool of strong models based on the prompt.
+- This is the safest fast default when you want better simulation quality without hard-locking the app to one model version.
+
+You can still point the same backend at an AMD-hosted OpenAI-compatible endpoint later:
+- set `MODEL_API_BASE_URL` to your AMD endpoint
+- set `MODEL_API_MODEL` to the model name served there
+- keep `USE_MOCK=false`
 - keep `VITE_API_BASE_URL` pointed at the FastAPI backend that fronts the simulation
+
+Backward compatibility note:
+- the backend still accepts the older `AMD_LLM_*` variables if you already use them
+- `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` are also accepted as aliases
 
 The frontend now expects the backend to return a structured simulation report with:
 - startup brief
@@ -119,17 +126,18 @@ The frontend now expects the backend to return a structured simulation report wi
 - live preview HTML for the generated startup artifact
 
 ### Tutorial Video
-This repo now includes a 30-second Remotion tutorial that explains how to use the site and summarizes the README.
+This repo now includes a 90-second Remotion product demo with English voiceover, centered on the live simulation flow, hardware drag race, and generated preview reveal.
 
 Commands:
 ```bash
+npm run tutorial:voiceover
 npm run tutorial:studio
 npm run tutorial:render
 ```
 
 Rendered output:
 ```bash
-renders/autonomous-startup-tutorial.mp4
+renders/launchmyidea-ai-tutorial.mp4
 ```
 
 ---

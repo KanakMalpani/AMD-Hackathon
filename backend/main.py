@@ -8,18 +8,42 @@ from copy import deepcopy
 from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
+import requests
 
 
 app = FastAPI(title="LaunchMyIdea AI API")
 
 
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() in {"1", "true", "yes"}
-AMD_LLM_BASE_URL = os.getenv("AMD_LLM_BASE_URL", "http://localhost:8000/v1")
-AMD_LLM_MODEL = os.getenv("AMD_LLM_MODEL", "qwen-2.5-7b-instruct")
-AMD_LLM_API_KEY = os.getenv("AMD_LLM_API_KEY", "dummy")
-AMD_LLM_TEMPERATURE = float(os.getenv("AMD_LLM_TEMPERATURE", "0.35"))
+MODEL_API_BASE_URL = os.getenv(
+    "MODEL_API_BASE_URL",
+    os.getenv("OPENROUTER_BASE_URL", os.getenv("AMD_LLM_BASE_URL", "https://openrouter.ai/api/v1")),
+)
+MODEL_API_MODEL = os.getenv(
+    "MODEL_API_MODEL",
+    os.getenv("OPENROUTER_MODEL", os.getenv("AMD_LLM_MODEL", "openrouter/auto")),
+)
+MODEL_API_KEY = os.getenv(
+    "MODEL_API_KEY",
+    os.getenv("OPENROUTER_API_KEY", os.getenv("AMD_LLM_API_KEY", "dummy")),
+)
+MODEL_API_TEMPERATURE = float(
+    os.getenv(
+        "MODEL_API_TEMPERATURE",
+        os.getenv("OPENROUTER_TEMPERATURE", os.getenv("AMD_LLM_TEMPERATURE", "0.25")),
+    )
+)
+MODEL_API_TIMEOUT_SECONDS = int(os.getenv("MODEL_API_TIMEOUT_SECONDS", "90"))
+
+
+def detect_provider(base_url: str, model: str) -> str:
+    source = f"{base_url} {model}".lower()
+    if "openrouter" in source:
+        return "openrouter"
+    if "localhost" in source or "127.0.0.1" in source or "amd" in source:
+        return "amd-compatible"
+    return "openai-compatible"
 
 
 STAGE_TEMPLATE = [
@@ -87,16 +111,6 @@ class StartupRequest(BaseModel):
 
 jobs: dict[str, dict[str, Any]] = {}
 jobs_lock = threading.Lock()
-
-
-def get_llm() -> ChatOpenAI:
-    return ChatOpenAI(
-        model=AMD_LLM_MODEL,
-        temperature=AMD_LLM_TEMPERATURE,
-        base_url=AMD_LLM_BASE_URL,
-        api_key=AMD_LLM_API_KEY,
-    )
-
 
 def fresh_stages() -> list[dict[str, str]]:
     stages: list[dict[str, str]] = []
@@ -252,7 +266,57 @@ def parse_json_content(content: str) -> dict[str, Any]:
         parts = text.split("```")
         text = parts[1] if len(parts) > 1 else text
         text = text.replace("json", "", 1).strip()
+    if "{" in text and "}" in text:
+        text = text[text.find("{") : text.rfind("}") + 1]
     return json.loads(text)
+
+
+def chat_completions_url() -> str:
+    return MODEL_API_BASE_URL.rstrip("/") + "/chat/completions"
+
+
+def model_headers() -> dict[str, str]:
+    headers = {
+        "Authorization": f"Bearer {MODEL_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    if detect_provider(MODEL_API_BASE_URL, MODEL_API_MODEL) == "openrouter":
+        headers["HTTP-Referer"] = "https://amd-hackathon-beta.vercel.app"
+        headers["X-Title"] = "LaunchMyIdea AI"
+    return headers
+
+
+def invoke_model_json(prompt: str) -> dict[str, Any]:
+    payload = {
+        "model": MODEL_API_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are an expert startup simulation model. Return valid JSON only.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": MODEL_API_TEMPERATURE,
+        "response_format": {"type": "json_object"},
+    }
+
+    last_error: Exception | None = None
+    for _attempt in range(3):
+        try:
+            response = requests.post(
+                chat_completions_url(),
+                headers=model_headers(),
+                json=payload,
+                timeout=MODEL_API_TIMEOUT_SECONDS,
+            )
+            response.raise_for_status()
+            body = response.json()
+            message = body["choices"][0]["message"]["content"]
+            return parse_json_content(message if isinstance(message, str) else json.dumps(message))
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+            time.sleep(1.2)
+    raise RuntimeError(f"Model invocation failed after retries: {last_error}") from last_error
 
 
 def run_json_agent(
@@ -262,7 +326,6 @@ def run_json_agent(
     payload: dict[str, Any],
     context: dict[str, Any],
 ) -> dict[str, Any]:
-    llm = get_llm()
     prompt = (
         f"You are {name} inside an AI startup simulator called LaunchMyIdea AI.\n"
         f"Mission: {mission}\n\n"
@@ -278,9 +341,7 @@ def run_json_agent(
         "- Be concrete enough that the result can drive a product demo.\n"
         "- Do not wrap JSON in markdown fences.\n"
     )
-    response = llm.invoke(prompt)
-    content = response.content if isinstance(response.content, str) else str(response.content)
-    return parse_json_content(content)
+    return invoke_model_json(prompt)
 
 
 def build_preview_html(title: str, thesis: str, channels: list[str], score: int) -> str:
@@ -481,7 +542,7 @@ def build_mock_report(request: StartupRequest) -> dict[str, Any]:
                 "stack": [
                     "React + TanStack Router",
                     "FastAPI orchestration backend",
-                    "OpenAI-compatible AMD model endpoint",
+                    "OpenRouter or AMD-compatible chat endpoint",
                     "Vercel frontend deployment",
                 ],
                 "architecture": [
@@ -498,9 +559,9 @@ def build_mock_report(request: StartupRequest) -> dict[str, Any]:
                 "hook_lines": [
                     "Six AI agents, one startup, one visible simulation.",
                     "This is not a chatbot. It is a company in a sandbox.",
-                    "AMD GPUs make the startup think in parallel.",
-                ],
-                "judge_pitch": (
+                "AMD GPUs make the startup think in parallel.",
+            ],
+            "judge_pitch": (
                     "We turned startup planning into a high-fidelity, inspectable simulation where AMD acceleration is part of the user experience."
                 ),
             },
@@ -907,8 +968,9 @@ def run_startup_simulation(job_id: str, request: StartupRequest) -> None:
             "readiness": 6,
             "runtime": {
                 "mock_mode": USE_MOCK,
-                "model": AMD_LLM_MODEL,
-                "base_url": AMD_LLM_BASE_URL,
+                "model": MODEL_API_MODEL,
+                "base_url": MODEL_API_BASE_URL,
+                "provider": detect_provider(MODEL_API_BASE_URL, MODEL_API_MODEL),
                 "mode": "multi-agent",
             },
             "started_at": int(time.time() * 1000),
@@ -956,8 +1018,9 @@ async def generate_startup(request: StartupRequest, background_tasks: Background
         "message": "Startup simulation initiated on the AMD orchestration layer.",
         "runtime": {
             "mock_mode": USE_MOCK,
-            "model": AMD_LLM_MODEL,
-            "base_url": AMD_LLM_BASE_URL,
+            "model": MODEL_API_MODEL,
+            "base_url": MODEL_API_BASE_URL,
+            "provider": detect_provider(MODEL_API_BASE_URL, MODEL_API_MODEL),
             "mode": "multi-agent",
         },
     }
@@ -973,8 +1036,9 @@ async def health():
     return {
         "ok": True,
         "mock_mode": USE_MOCK,
-        "model": AMD_LLM_MODEL,
-        "base_url": AMD_LLM_BASE_URL,
+        "model": MODEL_API_MODEL,
+        "base_url": MODEL_API_BASE_URL,
+        "provider": detect_provider(MODEL_API_BASE_URL, MODEL_API_MODEL),
     }
 
 

@@ -21,6 +21,7 @@ export type GenerateStartupResponse = {
     mock_mode: boolean;
     model: string;
     base_url: string;
+    provider?: string;
   };
 };
 
@@ -38,6 +39,7 @@ export type JobStatusResponse = {
     mock_mode: boolean;
     model: string;
     base_url: string;
+    provider?: string;
     mode?: string;
   };
 };

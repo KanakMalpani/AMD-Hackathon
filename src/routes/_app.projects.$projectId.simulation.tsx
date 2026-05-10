@@ -392,6 +392,8 @@ function SimulationPage() {
 
       if (status.runtime?.mock_mode) {
         setRuntimeLabel("Mock multi-agent runtime");
+      } else if (status.runtime?.provider === "openrouter") {
+        setRuntimeLabel("OpenRouter multi-agent runtime");
       } else if (status.runtime?.mode === "multi-agent") {
         setRuntimeLabel("AMD multi-agent runtime");
       } else {
@@ -440,11 +442,17 @@ function SimulationPage() {
       const response = await generateStartup(prompt);
       setJobId(response.job_id);
       setRuntimeLabel(
-        response.runtime?.mock_mode ? "Mock multi-agent runtime" : "AMD multi-agent runtime",
+        response.runtime?.mock_mode
+          ? "Mock multi-agent runtime"
+          : response.runtime?.provider === "openrouter"
+            ? "OpenRouter multi-agent runtime"
+            : "AMD multi-agent runtime",
       );
       toast.info(
         response.runtime?.mock_mode
           ? "Mock multi-agent runtime started."
+          : response.runtime?.provider === "openrouter"
+            ? "OpenRouter multi-agent runtime engaged."
           : "AMD multi-agent runtime engaged.",
       );
 

@@ -1,650 +1,854 @@
 import React from "react";
 import {
   AbsoluteFill,
-  interpolate,
+  Audio,
   Sequence,
+  interpolate,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 
 const palette = {
-  bg: "#050816",
-  panel: "rgba(15, 23, 42, 0.84)",
-  panelSoft: "rgba(255, 255, 255, 0.06)",
-  border: "rgba(255, 255, 255, 0.14)",
+  bg: "#030303",
+  card: "rgba(255,255,255,0.045)",
+  border: "rgba(255,255,255,0.12)",
   red: "#ED1C24",
-  redSoft: "rgba(237, 28, 36, 0.18)",
+  redSoft: "rgba(237,28,36,0.15)",
   green: "#3CFF7A",
-  text: "#F8FAFC",
-  muted: "#94A3B8",
+  greenSoft: "rgba(60,255,122,0.13)",
+  white: "#FAFAFA",
+  muted: "#A1A1AA",
 };
 
-const sceneDurations = [150, 150, 150, 150, 150, 150];
-const sceneTitles = [
-  "What this site does",
-  "Step 1: Enter the runtime",
-  "Step 2: Create the brief",
-  "Step 3: Run the startup world",
-  "Step 4: Read the outputs",
-  "README in 5 points",
-];
+const sceneDurations = [360, 360, 600, 480, 540, 360] as const;
+const totalDuration = sceneDurations.reduce((sum, value) => sum + value, 0);
 
-const cardStyle: React.CSSProperties = {
-  background: palette.panel,
+const scenes = [
+  {
+    kicker: "LIVE DEMO / HOOK",
+    title: "Execution, not just text.",
+    subtitle:
+      "LaunchMyIdea AI shows how AMD-backed agents can take a startup idea and turn it into an executable company plan.",
+  },
+  {
+    kicker: "LIVE DEMO / INPUT",
+    title: "One idea starts everything.",
+    subtitle:
+      "The user enters a startup concept, and the system spins up a visible simulation instead of hiding the process.",
+  },
+  {
+    kicker: "LIVE DEMO / DRAG RACE",
+    title: "The Hardware Drag Race",
+    subtitle:
+      "A standard CPU lane crawls, while the AMD Instinct and ROCm lane moves through the simulation in parallel.",
+  },
+  {
+    kicker: "LIVE DEMO / COLLABORATION",
+    title: "Six agents, one startup.",
+    subtitle:
+      "CEO, Product, Engineer, Marketing, Finance, and Critic collaborate in real time across strategy, build, and launch.",
+  },
+  {
+    kicker: "LIVE DEMO / GRAND REVEAL",
+    title: "The plan becomes a product.",
+    subtitle:
+      "The Engineer agent does not stop at words. It prepares code-ready output and a live preview that makes the startup feel real.",
+  },
+  {
+    kicker: "LIVE DEMO / CLOSE",
+    title: "From what if to launch.",
+    subtitle:
+      "LaunchMyIdea AI turns AMD acceleration into visible business execution.",
+  },
+] as const;
+
+const voiceoverFile = staticFile("voiceover/launchmyidea-ai-tutorial.mp3");
+
+const mono = "'Space Mono', Consolas, monospace";
+const display = "'Bahnschrift', 'Aptos Display', 'Segoe UI', sans-serif";
+
+const sceneCard: React.CSSProperties = {
+  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))",
   border: `1px solid ${palette.border}`,
-  borderRadius: 28,
-  boxShadow: "0 24px 80px rgba(0,0,0,0.35)",
-  backdropFilter: "blur(16px)",
+  borderRadius: 30,
+  boxShadow: "0 28px 80px rgba(0,0,0,0.42)",
 };
 
-const titleStyle: React.CSSProperties = {
-  fontSize: 76,
-  fontWeight: 800,
-  lineHeight: 1.02,
-  letterSpacing: -2,
-  margin: 0,
-};
+const sumBefore = (index: number) =>
+  sceneDurations.slice(0, index).reduce((sum, value) => sum + value, 0);
 
-const bodyStyle: React.CSSProperties = {
-  fontSize: 30,
-  lineHeight: 1.45,
-  color: palette.muted,
-  margin: 0,
-};
-
-const BulletList: React.FC<{items: string[]; activeIndex?: number}> = ({items, activeIndex}) => {
-  return (
-    <div style={{display: "flex", flexDirection: "column", gap: 18}}>
-      {items.map((item, index) => {
-        const active = activeIndex === undefined ? true : index <= activeIndex;
-        return (
-          <div
-            key={item}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              opacity: active ? 1 : 0.35,
-              transform: `translateX(${active ? 0 : 18}px)`,
-            }}
-          >
-            <div
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 999,
-                background: active ? palette.green : palette.redSoft,
-                boxShadow: active ? "0 0 18px rgba(60,255,122,0.7)" : "none",
-              }}
-            />
-            <div style={{fontSize: 28, color: palette.text}}>{item}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-const FauxWindow: React.FC<{
-  title: string;
-  subtitle: string;
+const SceneShell: React.FC<{
+  index: number;
   children: React.ReactNode;
-  accent?: string;
-}> = ({title, subtitle, children, accent = palette.red}) => {
-  return (
-    <div style={{...cardStyle, padding: 28, display: "flex", flexDirection: "column", gap: 22}}>
-      <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-        <div>
-          <div style={{fontSize: 32, color: palette.text, fontWeight: 700}}>{title}</div>
-          <div style={{fontSize: 22, color: palette.muted, marginTop: 6}}>{subtitle}</div>
-        </div>
-        <div
-          style={{
-            padding: "10px 16px",
-            borderRadius: 999,
-            background: `${accent}22`,
-            color: accent,
-            border: `1px solid ${accent}66`,
-            fontSize: 18,
-            fontWeight: 700,
-            textTransform: "uppercase",
-            letterSpacing: 1.5,
-          }}
-        >
-          Live
-        </div>
-      </div>
-      {children}
-    </div>
-  );
-};
-
-const ProgressBar: React.FC<{progress: number}> = ({progress}) => (
-  <div
-    style={{
-      height: 12,
-      width: "100%",
-      borderRadius: 999,
-      background: "rgba(255,255,255,0.08)",
-      overflow: "hidden",
-    }}
-  >
-    <div
-      style={{
-        height: "100%",
-        width: `${progress}%`,
-        background: "linear-gradient(90deg,#ED1C24,#3CFF7A)",
-      }}
-    />
-  </div>
-);
-
-const SceneChrome: React.FC<{sceneIndex: number; children: React.ReactNode}> = ({
-  sceneIndex,
-  children,
-}) => {
+}> = ({ index, children }) => {
   const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
-  const reveal = spring({
+  const { fps } = useVideoConfig();
+  const intro = spring({
     frame,
     fps,
-    config: {damping: 16, stiffness: 120},
+    config: { damping: 18, stiffness: 120 },
   });
 
   return (
     <AbsoluteFill
       style={{
         background: `
-          radial-gradient(circle at top right, rgba(237,28,36,0.18), transparent 28%),
-          radial-gradient(circle at bottom left, rgba(60,255,122,0.12), transparent 26%),
-          ${palette.bg}
+          radial-gradient(circle at 14% 18%, rgba(237,28,36,0.26), transparent 24%),
+          radial-gradient(circle at 86% 76%, rgba(60,255,122,0.11), transparent 24%),
+          linear-gradient(180deg, #09090b 0%, #020202 100%)
         `,
-        color: palette.text,
-        fontFamily: "Inter, system-ui, sans-serif",
-        padding: 64,
+        color: palette.white,
+        fontFamily: display,
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "absolute",
-          inset: 28,
-          border: `1px solid rgba(255,255,255,0.08)`,
-          borderRadius: 36,
+          inset: 0,
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)",
+          backgroundSize: "72px 72px",
+          opacity: 0.35,
         }}
       />
       <div
         style={{
+          position: "absolute",
+          width: 900,
+          height: 900,
+          borderRadius: 9999,
+          border: "1px solid rgba(237,28,36,0.18)",
+          top: -280,
+          right: -180,
+          opacity: 0.45,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: 520,
+          height: 520,
+          borderRadius: 9999,
+          border: "1px solid rgba(255,255,255,0.08)",
+          bottom: -150,
+          left: -130,
+          opacity: 0.35,
+        }}
+      />
+
+      <div
+        style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 32,
-          transform: `translateY(${interpolate(reveal, [0, 1], [24, 0])}px)`,
-          opacity: reveal,
+          flexDirection: "column",
+          width: "100%",
+          height: "100%",
+          padding: "58px 72px 52px",
+          transform: `translateY(${interpolate(intro, [0, 1], [24, 0])}px)`,
+          opacity: intro,
         }}
       >
-        <div>
-          <div
-            style={{
-              fontSize: 18,
-              color: palette.red,
-              textTransform: "uppercase",
-              letterSpacing: 4,
-              fontWeight: 700,
-            }}
-          >
-            AMD Hackathon Tutorial
-          </div>
-          <div style={{fontSize: 42, fontWeight: 800, marginTop: 8}}>
-            {sceneTitles[sceneIndex]}
-          </div>
-        </div>
-        <div style={{display: "flex", gap: 10}}>
-          {sceneTitles.map((_, index) => (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
             <div
-              key={index}
               style={{
-                width: index === sceneIndex ? 48 : 12,
-                height: 12,
-                borderRadius: 999,
-                background:
-                  index === sceneIndex ? "linear-gradient(90deg,#ED1C24,#3CFF7A)" : palette.panelSoft,
+                fontFamily: mono,
+                fontSize: 17,
+                letterSpacing: 5,
+                textTransform: "uppercase",
+                color: palette.red,
               }}
-            />
-          ))}
+            >
+              {scenes[index].kicker}
+            </div>
+            <div style={{ marginTop: 14, fontSize: 74, fontWeight: 800, lineHeight: 0.94 }}>
+              {scenes[index].title}
+            </div>
+            <div
+              style={{
+                marginTop: 16,
+                maxWidth: 980,
+                fontSize: 28,
+                lineHeight: 1.34,
+                color: palette.muted,
+              }}
+            >
+              {scenes[index].subtitle}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            {scenes.map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: i === index ? 58 : 12,
+                  height: 12,
+                  borderRadius: 999,
+                  background:
+                    i === index
+                      ? "linear-gradient(90deg,#ED1C24 0%,#FF7A7A 60%,#FFFFFF 100%)"
+                      : "rgba(255,255,255,0.16)",
+                }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-      <div
-        style={{
-          flex: 1,
-          transform: `scale(${interpolate(reveal, [0, 1], [0.96, 1])})`,
-          opacity: reveal,
-        }}
-      >
-        {children}
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: 28,
-          color: palette.muted,
-          fontSize: 20,
-        }}
-      >
-        <div>30-second Remotion walkthrough</div>
-        <div>autonomous startup-in-a-box</div>
+
+        <div style={{ display: "flex", width: "100%", height: "100%", marginTop: 34 }}>
+          {children}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 24,
+            fontFamily: mono,
+            fontSize: 16,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: palette.muted,
+          }}
+        >
+          <div>LaunchMyIdea AI</div>
+          <div>90 second live demo story</div>
+        </div>
       </div>
     </AbsoluteFill>
   );
 };
 
+const MetricPill: React.FC<{ label: string; value: string; accent?: string }> = ({
+  label,
+  value,
+  accent = palette.red,
+}) => (
+  <div
+    style={{
+      ...sceneCard,
+      minWidth: 220,
+      padding: "18px 22px",
+      background: "rgba(255,255,255,0.035)",
+    }}
+  >
+    <div style={{ fontFamily: mono, fontSize: 14, color: palette.muted, letterSpacing: 2 }}>
+      {label}
+    </div>
+    <div style={{ fontSize: 34, fontWeight: 700, marginTop: 12, color: accent }}>{value}</div>
+  </div>
+);
+
 const SceneOne: React.FC = () => {
+  const frame = useCurrentFrame();
+  const shimmer = interpolate(frame, [0, sceneDurations[0]], [-260, 520], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
   return (
-    <SceneChrome sceneIndex={0}>
-      <div style={{display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 36, height: "100%"}}>
-        <div style={{...cardStyle, padding: 44, display: "flex", flexDirection: "column", justifyContent: "center"}}>
+    <SceneShell index={0}>
+      <div style={{ display: "flex", width: "100%", gap: 28 }}>
+        <div
+          style={{
+            ...sceneCard,
+            flex: 1.1,
+            padding: "42px 44px",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
           <div
             style={{
-              display: "inline-flex",
-              padding: "12px 18px",
-              borderRadius: 999,
-              background: palette.redSoft,
-              color: palette.red,
-              fontSize: 18,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: 2,
-              width: "fit-content",
+              position: "absolute",
+              inset: -120,
+              background:
+                "conic-gradient(from 95deg, transparent, rgba(237,28,36,0.18), transparent 42%, rgba(255,255,255,0.10), transparent 65%)",
+              transform: `rotate(${frame * 0.35}deg)`,
             }}
-          >
-            Startup simulator
+          />
+          <div style={{ position: "relative", zIndex: 2 }}>
+            <div
+              style={{
+                display: "inline-flex",
+                padding: "10px 14px",
+                borderRadius: 999,
+                background: palette.redSoft,
+                border: "1px solid rgba(237,28,36,0.35)",
+                fontFamily: mono,
+                fontSize: 14,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+              }}
+            >
+              AMD Edition
+            </div>
+            <div style={{ marginTop: 28, fontSize: 128, fontWeight: 900, lineHeight: 0.84 }}>
+              IDEA
+            </div>
+            <div
+              style={{
+                marginTop: 18,
+                maxWidth: 780,
+                fontSize: 27,
+                color: palette.muted,
+                lineHeight: 1.44,
+              }}
+            >
+              We have all seen AI generate text. This project is about execution. One startup
+              idea enters, and a full visible company simulation begins.
+            </div>
+            <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 34 }}>
+              <MetricPill label="Input" value="1 raw startup idea" />
+              <MetricPill label="Runtime" value="Visible multi-agent flow" accent={palette.green} />
+              <MetricPill label="Outcome" value="Execution plan" accent="#FFFFFF" />
+            </div>
           </div>
-          <h1 style={{...titleStyle, marginTop: 24}}>
-            One idea in.
-            <br />
-            Six agents out.
-          </h1>
-          <p style={{...bodyStyle, marginTop: 24}}>
-            This site turns a raw startup idea into strategy, MVP scope, launch
-            messaging, finance logic, and critic feedback.
-          </p>
-          <div style={{marginTop: 32}}>
-            <BulletList
-              items={[
-                "Visible agent activity feed",
-                "Live startup-world timeline",
-                "Executive, build, launch, finance outputs",
-              ]}
-            />
-          </div>
+          <div
+            style={{
+              position: "absolute",
+              top: -80,
+              left: shimmer,
+              width: 200,
+              height: "135%",
+              transform: "rotate(18deg)",
+              background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
+            }}
+          />
         </div>
-        <FauxWindow title="Simulation Preview" subtitle="What the judges will see">
-          <ProgressBar progress={88} />
-          <div style={{display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16}}>
-            {["CEO Strategy", "Agent Cast", "Build Plan", "Critic Loop"].map((item, index) => (
-              <div
-                key={item}
-                style={{
-                  padding: 20,
-                  borderRadius: 22,
-                  background: "rgba(255,255,255,0.04)",
-                  border: `1px solid ${index === 0 ? "rgba(60,255,122,0.4)" : palette.border}`,
-                }}
-              >
-                <div style={{fontSize: 16, color: palette.green, textTransform: "uppercase", letterSpacing: 1.8}}>
-                  Stage {index + 1}
+
+        <div style={{ width: 520, display: "flex", flexDirection: "column", gap: 18 }}>
+          {[
+            "Validation",
+            "Product Breakdown",
+            "MVP Scope",
+            "Marketing Strategy",
+            "Revenue Simulation",
+            "Live Preview",
+          ].map((item, index) => (
+            <div
+              key={item}
+              style={{
+                ...sceneCard,
+                padding: "18px 20px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                transform: `translateX(${Math.sin((frame + index * 7) / 16) * 8}px)`,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 24, fontWeight: 700 }}>{item}</div>
+                <div style={{ marginTop: 6, fontFamily: mono, fontSize: 14, color: palette.muted }}>
+                  generated by specialized agents
                 </div>
-                <div style={{fontSize: 24, marginTop: 10, fontWeight: 700}}>{item}</div>
               </div>
-            ))}
-          </div>
-        </FauxWindow>
+              <div
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 999,
+                  background: index % 2 === 0 ? palette.red : palette.green,
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
-    </SceneChrome>
+    </SceneShell>
   );
 };
 
 const SceneTwo: React.FC = () => {
+  const frame = useCurrentFrame();
+  const exampleIdea = "A solar-powered autonomous lawn-mowing subscription service";
+  const typed = Math.max(
+    0,
+    Math.min(exampleIdea.length, Math.floor(interpolate(frame, [24, 250], [0, exampleIdea.length]))),
+  );
+  const buttonGlow = 0.55 + Math.sin(frame / 12) * 0.08;
+
   return (
-    <SceneChrome sceneIndex={1}>
-      <div style={{display: "grid", gridTemplateColumns: "0.95fr 1.05fr", gap: 36, height: "100%"}}>
-        <FauxWindow title="Homepage" subtitle="Start from the landing screen">
+    <SceneShell index={1}>
+      <div style={{ display: "flex", width: "100%", gap: 28 }}>
+        <div style={{ ...sceneCard, flex: 1, padding: "34px 36px" }}>
+          <div style={{ fontFamily: mono, fontSize: 16, color: palette.muted, letterSpacing: 2 }}>
+            dashboard input
+          </div>
           <div
             style={{
-              flex: 1,
-              borderRadius: 24,
-              padding: 28,
-              background:
-                "linear-gradient(135deg, rgba(237,28,36,0.18), rgba(15,23,42,0.96))",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
+              marginTop: 20,
+              ...sceneCard,
+              padding: "20px 22px",
+              background: "rgba(255,255,255,0.03)",
             }}
           >
-            <div>
-              <div style={{fontSize: 18, color: palette.red, textTransform: "uppercase", letterSpacing: 3}}>
-                Hero section
-              </div>
-              <div style={{fontSize: 54, fontWeight: 800, marginTop: 16, lineHeight: 1.05}}>
-                Stop pitching
-                <br />
-                static startup plans.
-              </div>
-              <div style={{fontSize: 24, color: palette.muted, marginTop: 18, lineHeight: 1.4}}>
-                Click the main CTA to move from the landing page into your workspace.
-              </div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>New Startup</div>
+            <div style={{ marginTop: 18, fontSize: 15, color: palette.muted, fontFamily: mono }}>
+              startup idea
             </div>
             <div
               style={{
-                alignSelf: "flex-start",
+                marginTop: 10,
+                minHeight: 116,
+                borderRadius: 20,
+                border: `1px solid ${palette.border}`,
+                padding: "18px 20px",
+                fontSize: 26,
+                lineHeight: 1.35,
+                background: "rgba(255,255,255,0.03)",
+              }}
+            >
+              {exampleIdea.slice(0, typed)}
+              <span style={{ opacity: typed < exampleIdea.length ? 1 : 0.4 }}>|</span>
+            </div>
+            <div
+              style={{
+                marginTop: 24,
+                display: "inline-flex",
                 padding: "18px 28px",
                 borderRadius: 999,
                 background: palette.red,
+                color: palette.white,
                 fontSize: 24,
                 fontWeight: 700,
+                boxShadow: `0 0 34px rgba(237,28,36,${buttonGlow})`,
               }}
             >
-              Enter Runtime
+              Start Simulation
             </div>
           </div>
-        </FauxWindow>
-        <div style={{...cardStyle, padding: 44}}>
-          <h2 style={{fontSize: 54, margin: 0, fontWeight: 800}}>How to use it</h2>
-          <div style={{marginTop: 24}}>
-            <BulletList
-              items={[
-                "Open the homepage",
-                "Click Enter Runtime or sign in",
-                "Create a new startup workspace",
-                "Move into the Brief screen",
-              ]}
-              activeIndex={3}
-            />
-          </div>
-          <p style={{...bodyStyle, marginTop: 30}}>
-            Think of this as entering a command center. The landing page sells the
-            idea, but the real product begins after the CTA.
-          </p>
+        </div>
+
+        <div style={{ width: 520, display: "flex", flexDirection: "column", gap: 18 }}>
+          {[
+            "User opens the startup modal",
+            "A creative idea is entered",
+            "The orchestrator receives the prompt",
+            "The simulation becomes visible immediately",
+          ].map((line, index) => (
+            <div key={line} style={{ ...sceneCard, padding: "22px 24px" }}>
+              <div style={{ fontFamily: mono, fontSize: 13, color: palette.red, letterSpacing: 2 }}>
+                step {index + 1}
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 700, marginTop: 10 }}>{line}</div>
+            </div>
+          ))}
         </div>
       </div>
-    </SceneChrome>
+    </SceneShell>
   );
 };
 
 const SceneThree: React.FC = () => {
+  const frame = useCurrentFrame();
+  const cpuProgress = Math.min(34, frame * 0.08);
+  const amdProgress = Math.min(100, frame * 0.36);
+  const amdStage = amdProgress < 18 ? "Initializing" : amdProgress < 42 ? "Strategy" : amdProgress < 66 ? "Parallel Agent Work" : amdProgress < 88 ? "MVP + Finance" : "Grand Reveal";
+  const cpuStage = cpuProgress < 14 ? "Initializing" : cpuProgress < 24 ? "Strategy" : "Still processing";
+
   return (
-    <SceneChrome sceneIndex={2}>
-      <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, height: "100%"}}>
-        <div style={{...cardStyle, padding: 42}}>
-          <div style={{fontSize: 20, color: palette.red, textTransform: "uppercase", letterSpacing: 3}}>
-            Reality Seed Brief
+    <SceneShell index={2}>
+      <div style={{ display: "flex", width: "100%", gap: 28 }}>
+        <div style={{ ...sceneCard, flex: 1, padding: "34px 38px" }}>
+          <div style={{ fontFamily: mono, fontSize: 16, color: palette.muted, letterSpacing: 2 }}>
+            split-screen benchmark
           </div>
-          <h2 style={{fontSize: 58, margin: "18px 0 0", fontWeight: 800}}>Fill the startup brief</h2>
-          <p style={{...bodyStyle, marginTop: 18}}>
-            This page is where you tell the agents what company to simulate.
-          </p>
-          <div style={{marginTop: 28}}>
-            <BulletList
-              items={[
-                "Startup idea",
-                "Audience and problem",
-                "Business model and MVP scope",
-                "Signals, constraints, and AMD focus",
-              ]}
-              activeIndex={3}
-            />
-          </div>
-        </div>
-        <FauxWindow title="Prompt Fields" subtitle="Everything the agents need">
-          <div style={{display: "flex", flexDirection: "column", gap: 14}}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 34, marginTop: 24 }}>
             {[
-              "AI founder copilot for student builders",
-              "Audience: student founders, campus teams",
-              "Problem: too many ideas, not enough execution clarity",
-              "AMD focus: show why fast multi-agent inference matters",
-            ].map((line) => (
-              <div
-                key={line}
-                style={{
-                  borderRadius: 18,
-                  padding: "18px 20px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: `1px solid ${palette.border}`,
-                  fontSize: 22,
-                }}
-              >
-                {line}
+              {
+                label: "Standard Cloud CPU",
+                stage: cpuStage,
+                pct: cpuProgress,
+                bg: "rgba(255,255,255,0.05)",
+                accent: "#9A9AA2",
+                border: "rgba(255,255,255,0.14)",
+              },
+              {
+                label: "AMD Instinct / ROCm",
+                stage: amdStage,
+                pct: amdProgress,
+                bg: "rgba(237,28,36,0.09)",
+                accent: palette.red,
+                border: "rgba(237,28,36,0.38)",
+              },
+            ].map((lane) => (
+              <div key={lane.label}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 12,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 28, fontWeight: 700 }}>{lane.label}</div>
+                    <div style={{ fontFamily: mono, fontSize: 14, color: palette.muted, marginTop: 6 }}>
+                      {lane.stage}
+                    </div>
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: 24 }}>{Math.round(lane.pct)}%</div>
+                </div>
+                <div
+                  style={{
+                    height: 106,
+                    borderRadius: 30,
+                    background: lane.bg,
+                    border: `1px solid ${lane.border}`,
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      width: `${lane.pct}%`,
+                      background:
+                        lane.label === "Standard Cloud CPU"
+                          ? "linear-gradient(90deg, rgba(255,255,255,0.20), rgba(255,255,255,0.08))"
+                          : "linear-gradient(90deg, rgba(237,28,36,0.58), rgba(255,122,122,0.35))",
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `calc(${lane.pct}% - 28px)`,
+                      top: 33,
+                      width: 42,
+                      height: 42,
+                      borderRadius: 999,
+                      background: lane.accent,
+                      boxShadow:
+                        lane.label === "Standard Cloud CPU"
+                          ? "0 0 24px rgba(255,255,255,0.18)"
+                          : "0 0 28px rgba(237,28,36,0.42)",
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>
-        </FauxWindow>
+        </div>
+
+        <div style={{ width: 430, display: "flex", flexDirection: "column", gap: 18 }}>
+          <MetricPill label="Concurrency" value="6 agents live" accent={palette.green} />
+          <MetricPill label="Serving stack" value="ROCm + vLLM" accent="#FFFFFF" />
+          <div style={{ ...sceneCard, padding: "24px 26px", flex: 1 }}>
+            <div style={{ fontSize: 24, fontWeight: 700 }}>Why this section matters</div>
+            <div style={{ marginTop: 16, fontSize: 22, color: palette.muted, lineHeight: 1.5 }}>
+              This is where the demo proves the hardware story. The CPU lane is still trying to
+              initialize while the AMD lane is already coordinating specialist agents in parallel.
+            </div>
+          </div>
+        </div>
       </div>
-    </SceneChrome>
+    </SceneShell>
   );
 };
 
 const SceneFour: React.FC = () => {
   const frame = useCurrentFrame();
-  const activeIndex = Math.min(5, Math.floor((frame % 150) / 22));
-  const agents = ["CEO", "Product", "Engineer", "Marketing", "Finance", "Critic"];
+  const feed = [
+    "CEO Agent: framing the startup thesis and wedge.",
+    "Product Agent: locking the MVP scope and user journey.",
+    "Engineer Agent: scaffolding tech stack and component plan.",
+    "Marketing Agent: drafting the launch story and hook lines.",
+    "Finance Agent: projecting revenue model and costs.",
+    "Critic Agent: attacking weak assumptions before launch.",
+  ];
+  const visible = Math.min(feed.length, Math.floor(interpolate(frame, [40, 360], [1, feed.length])));
+  const nodes = [
+    { name: "CEO", x: 260, y: 250 },
+    { name: "Product", x: 520, y: 110 },
+    { name: "Engineer", x: 820, y: 110 },
+    { name: "Marketing", x: 1100, y: 250 },
+    { name: "Finance", x: 820, y: 390 },
+    { name: "Critic", x: 520, y: 390 },
+  ] as const;
+  const center = { x: 680, y: 250 };
 
   return (
-    <SceneChrome sceneIndex={3}>
-      <div style={{display: "grid", gridTemplateColumns: "0.92fr 1.08fr", gap: 36, height: "100%"}}>
-        <div style={{...cardStyle, padding: 40}}>
-          <h2 style={{fontSize: 56, margin: 0, fontWeight: 800}}>Run the simulation</h2>
-          <p style={{...bodyStyle, marginTop: 18}}>
-            Press Start. The backend orchestrator begins assigning work to the six
-            specialist agents.
-          </p>
-          <div style={{marginTop: 28}}>
-            <BulletList items={agents.map((a) => `${a} Agent works its role`)} activeIndex={activeIndex} />
-          </div>
-        </div>
-        <FauxWindow title="Live Runtime" subtitle="Timeline + activity feed" accent={palette.green}>
-          <div style={{display: "grid", gridTemplateColumns: "0.46fr 0.54fr", gap: 16}}>
-            <div style={{display: "flex", flexDirection: "column", gap: 12}}>
-              {["Reality Seed", "CEO Strategy", "Build Plan", "Launch Motion", "AMD Report"].map(
-                (stage, index) => (
-                  <div
-                    key={stage}
-                    style={{
-                      padding: "16px 18px",
-                      borderRadius: 18,
-                      background:
-                        index <= Math.floor(activeIndex / 1.2)
-                          ? "rgba(60,255,122,0.12)"
-                          : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${
-                        index <= Math.floor(activeIndex / 1.2)
-                          ? "rgba(60,255,122,0.5)"
-                          : palette.border
-                      }`,
-                    }}
-                  >
-                    <div style={{fontSize: 15, color: palette.muted, textTransform: "uppercase", letterSpacing: 1.6}}>
-                      Stage {index + 1}
-                    </div>
-                    <div style={{fontSize: 22, marginTop: 6, fontWeight: 700}}>{stage}</div>
-                  </div>
-                ),
-              )}
+    <SceneShell index={3}>
+      <div style={{ display: "flex", width: "100%", gap: 28 }}>
+        <div style={{ ...sceneCard, flex: 1, padding: 28, position: "relative", overflow: "hidden" }}>
+          <svg width="100%" height="100%" viewBox="0 0 1360 520">
+            {nodes.map((node, index) => (
+              <line
+                key={node.name}
+                x1={center.x}
+                y1={center.y}
+                x2={node.x}
+                y2={node.y}
+                stroke={index % 2 === 0 ? "rgba(237,28,36,0.32)" : "rgba(60,255,122,0.22)"}
+                strokeWidth="3"
+              />
+            ))}
+            {nodes.map((node, index) => {
+              const t = (frame * 0.02 + index * 0.13) % 1;
+              const px = center.x + (node.x - center.x) * t;
+              const py = center.y + (node.y - center.y) * t;
+              return <circle key={`pulse-${node.name}`} cx={px} cy={py} r={7} fill={palette.red} />;
+            })}
+          </svg>
+
+          <div
+            style={{
+              position: "absolute",
+              left: center.x - 138,
+              top: center.y - 82,
+              width: 276,
+              height: 164,
+              borderRadius: 999,
+              border: "1px solid rgba(237,28,36,0.42)",
+              background: "radial-gradient(circle, rgba(237,28,36,0.20), rgba(255,255,255,0.04))",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              boxShadow: "0 0 48px rgba(237,28,36,0.18)",
+            }}
+          >
+            <div>
+              <div style={{ fontFamily: mono, fontSize: 14, color: palette.muted, letterSpacing: 2 }}>
+                orchestrator
+              </div>
+              <div style={{ marginTop: 10, fontSize: 34, fontWeight: 800 }}>Command Layer</div>
             </div>
-            <div style={{display: "flex", flexDirection: "column", gap: 12}}>
-              {agents.slice(0, activeIndex + 1).map((agent, index) => (
-                <div
-                  key={agent}
-                  style={{
-                    padding: "14px 18px",
-                    borderRadius: 18,
-                    background: "rgba(255,255,255,0.04)",
-                    border: `1px solid ${palette.border}`,
-                  }}
-                >
-                  <div style={{fontSize: 18, color: palette.red, fontWeight: 700}}>
-                    {agent} Agent
-                  </div>
-                  <div style={{fontSize: 18, color: palette.muted, marginTop: 6}}>
-                    {index === activeIndex
-                      ? "Working live..."
-                      : "Delivered a startup-world update."}
-                  </div>
+          </div>
+
+          {nodes.map((node, index) => (
+            <div
+              key={node.name}
+              style={{
+                position: "absolute",
+                left: node.x - 105,
+                top: node.y - 52,
+                width: 210,
+                height: 104,
+                borderRadius: 24,
+                border: `1px solid ${index < visible ? "rgba(60,255,122,0.34)" : palette.border}`,
+                background: index < visible ? palette.greenSoft : palette.card,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 26, fontWeight: 700 }}>{node.name}</div>
+                <div style={{ fontFamily: mono, fontSize: 13, marginTop: 8, color: palette.muted }}>
+                  active agent
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </FauxWindow>
+          ))}
+        </div>
+
+        <div style={{ width: 470, display: "flex", flexDirection: "column", gap: 14 }}>
+          {feed.slice(0, visible).map((line, index) => (
+            <div
+              key={line}
+              style={{
+                ...sceneCard,
+                padding: "18px 20px",
+                background: index === visible - 1 ? "rgba(237,28,36,0.12)" : "rgba(255,255,255,0.04)",
+              }}
+            >
+              <div style={{ fontSize: 22, lineHeight: 1.38 }}>{line}</div>
+            </div>
+          ))}
+        </div>
       </div>
-    </SceneChrome>
+    </SceneShell>
   );
 };
 
 const SceneFive: React.FC = () => {
+  const frame = useCurrentFrame();
+  const reveal = Math.min(100, frame * 0.22);
+
   return (
-    <SceneChrome sceneIndex={4}>
-      <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: 36, height: "100%"}}>
-        <FauxWindow title="Results Dashboard" subtitle="Where to read everything">
-          <div style={{display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16}}>
-            {[
-              "Executive",
-              "World",
-              "Agents",
-              "Build",
-              "Launch",
-              "Finance",
-              "Critic",
-              "Live Preview",
-            ].map((tab, index) => (
+    <SceneShell index={4}>
+      <div style={{ display: "flex", width: "100%", gap: 28 }}>
+        <div style={{ ...sceneCard, flex: 1.1, padding: "30px 32px" }}>
+          <div style={{ fontFamily: mono, fontSize: 16, color: palette.muted, letterSpacing: 2 }}>
+            live preview tab
+          </div>
+          <div
+            style={{
+              marginTop: 18,
+              borderRadius: 28,
+              border: `1px solid rgba(60,255,122,0.28)`,
+              background:
+                "linear-gradient(135deg, rgba(237,28,36,0.12), rgba(7,7,8,0.96) 45%, rgba(60,255,122,0.12))",
+              height: 470,
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <div style={{ padding: "30px 34px" }}>
               <div
-                key={tab}
                 style={{
-                  padding: 20,
-                  borderRadius: 20,
-                  background: index === 0 ? palette.redSoft : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${index === 0 ? "rgba(237,28,36,0.45)" : palette.border}`,
-                  fontSize: 22,
-                  fontWeight: 700,
+                  display: "inline-flex",
+                  padding: "10px 14px",
+                  borderRadius: 999,
+                  background: "rgba(60,255,122,0.10)",
+                  border: "1px solid rgba(60,255,122,0.30)",
+                  fontFamily: mono,
+                  fontSize: 13,
+                  letterSpacing: 2,
                 }}
               >
-                {tab}
+                generated landing page
               </div>
-            ))}
-          </div>
-        </FauxWindow>
-        <div style={{...cardStyle, padding: 42}}>
-          <h2 style={{fontSize: 54, margin: 0, fontWeight: 800}}>What to open after a run</h2>
-          <div style={{marginTop: 28}}>
-            <BulletList
-              items={[
-                "Overview for the one-sentence pitch",
-                "Simulation page for proof of agent work",
-                "Output tabs for strategy, build, launch, and finance",
-                "Live Preview for the generated startup artifact",
-              ]}
-              activeIndex={3}
+              <div style={{ marginTop: 26, fontSize: 64, fontWeight: 900, lineHeight: 0.94 }}>
+                Solar-powered mowing
+                <br />
+                as a subscription.
+              </div>
+              <div style={{ marginTop: 18, fontSize: 24, lineHeight: 1.44, color: palette.muted, maxWidth: 760 }}>
+                A live preview rendered from the Engineer agent’s output. From idea to functional
+                startup surface in one continuous flow.
+              </div>
+              <div style={{ display: "flex", gap: 14, marginTop: 28, flexWrap: "wrap" }}>
+                {["Book a demo", "See pricing", "Why solar wins"].map((item) => (
+                  <div
+                    key={item}
+                    style={{
+                      padding: "16px 20px",
+                      borderRadius: 999,
+                      background: item === "Book a demo" ? palette.red : "rgba(255,255,255,0.08)",
+                      fontSize: 20,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                height: 6,
+                width: `${reveal}%`,
+                background: "linear-gradient(90deg,#ED1C24,#3CFF7A)",
+              }}
             />
           </div>
-          <p style={{...bodyStyle, marginTop: 28}}>
-            For demos, show the activity feed first, then jump to outputs and the live
-            preview so the judges see both process and result.
-          </p>
+        </div>
+
+        <div style={{ width: 430, display: "flex", flexDirection: "column", gap: 18 }}>
+          {[
+            "The Engineer agent converts plan into code-ready output.",
+            "The preview becomes the visual proof that the system can execute.",
+            "Judges see something concrete, not just a generated paragraph.",
+          ].map((line, index) => (
+            <div key={line} style={{ ...sceneCard, padding: "22px 24px" }}>
+              <div style={{ fontFamily: mono, fontSize: 13, color: index === 0 ? palette.red : palette.green, letterSpacing: 2 }}>
+                reveal point {index + 1}
+              </div>
+              <div style={{ marginTop: 10, fontSize: 25, lineHeight: 1.4 }}>{line}</div>
+            </div>
+          ))}
         </div>
       </div>
-    </SceneChrome>
+    </SceneShell>
   );
 };
 
 const SceneSix: React.FC = () => {
+  const frame = useCurrentFrame();
+  const pulse = 1 + Math.sin(frame / 10) * 0.018;
+
   return (
-    <SceneChrome sceneIndex={5}>
-      <div style={{display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: 36, height: "100%"}}>
-        <div style={{...cardStyle, padding: 42}}>
-          <div style={{fontSize: 20, color: palette.red, textTransform: "uppercase", letterSpacing: 3}}>
-            README explained
+    <SceneShell index={5}>
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            ...sceneCard,
+            width: 1320,
+            padding: "56px 66px",
+            transform: `scale(${pulse})`,
+            background:
+              "radial-gradient(circle at top, rgba(237,28,36,0.18), rgba(255,255,255,0.03) 48%, rgba(255,255,255,0.02))",
+          }}
+        >
+          <div style={{ fontFamily: mono, fontSize: 16, color: palette.red, letterSpacing: 3 }}>
+            final line
           </div>
-          <h2 style={{fontSize: 58, margin: "18px 0 0", fontWeight: 800}}>The whole repo in 5 points</h2>
-          <div style={{marginTop: 28}}>
-            <BulletList
-              items={[
-                "Frontend: React + TanStack + Vercel",
-                "Backend: FastAPI orchestrator",
-                "Agents: CEO, Product, Engineer, Marketing, Finance, Critic",
-                "AMD path: connect the backend to AMD-hosted model inference",
-                "Production env: set VITE_API_BASE_URL and USE_MOCK=false",
-              ]}
-              activeIndex={4}
-            />
+          <div style={{ marginTop: 20, fontSize: 118, fontWeight: 900, lineHeight: 0.86, letterSpacing: -4 }}>
+            LaunchMyIdea AI
+          </div>
+          <div style={{ marginTop: 28, fontSize: 34, lineHeight: 1.32 }}>
+            Most systems give you words.
+            <br />
+            This gives you execution.
+          </div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginTop: 34 }}>
+            {["FastAPI orchestrator", "Agent swarm", "AMD acceleration", "Live product preview"].map(
+              (item, index) => (
+                <div
+                  key={item}
+                  style={{
+                    padding: "14px 18px",
+                    borderRadius: 999,
+                    background: index === 2 ? palette.redSoft : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${index === 2 ? "rgba(237,28,36,0.36)" : palette.border}`,
+                    fontFamily: mono,
+                    fontSize: 15,
+                    letterSpacing: 1.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {item}
+                </div>
+              ),
+            )}
           </div>
         </div>
-        <FauxWindow title="Hand-off Checklist" subtitle="What to remember when shipping" accent={palette.green}>
-          <div style={{display: "flex", flexDirection: "column", gap: 16}}>
-            {[
-              "Keep the frontend on Vercel",
-              "Host the FastAPI backend separately",
-              "Point the backend at AMD model APIs",
-              "Redeploy after env vars change",
-            ].map((item) => (
-              <div
-                key={item}
-                style={{
-                  padding: "18px 20px",
-                  borderRadius: 18,
-                  background: "rgba(255,255,255,0.04)",
-                  border: `1px solid ${palette.border}`,
-                  fontSize: 24,
-                  color: palette.text,
-                }}
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-          <div
-            style={{
-              marginTop: 10,
-              padding: 24,
-              borderRadius: 22,
-              background: "rgba(60,255,122,0.08)",
-              border: "1px solid rgba(60,255,122,0.35)",
-            }}
-          >
-            <div style={{fontSize: 26, fontWeight: 800, color: palette.green}}>
-              Final message
-            </div>
-            <div style={{fontSize: 24, color: palette.text, marginTop: 10, lineHeight: 1.4}}>
-              The site is ready for demo use now, and it gets even stronger once the AMD
-              backend URL is connected.
-            </div>
-          </div>
-        </FauxWindow>
       </div>
-    </SceneChrome>
+    </SceneShell>
   );
 };
 
-export const AutonomousStartupTutorial: React.FC = () => {
+export const LaunchMyIdeaAITutorial: React.FC = () => {
   return (
     <AbsoluteFill>
-      <Sequence from={0} durationInFrames={sceneDurations[0]}>
+      <Audio src={voiceoverFile} />
+      <Sequence from={sumBefore(0)} durationInFrames={sceneDurations[0]}>
         <SceneOne />
       </Sequence>
-      <Sequence from={150} durationInFrames={sceneDurations[1]}>
+      <Sequence from={sumBefore(1)} durationInFrames={sceneDurations[1]}>
         <SceneTwo />
       </Sequence>
-      <Sequence from={300} durationInFrames={sceneDurations[2]}>
+      <Sequence from={sumBefore(2)} durationInFrames={sceneDurations[2]}>
         <SceneThree />
       </Sequence>
-      <Sequence from={450} durationInFrames={sceneDurations[3]}>
+      <Sequence from={sumBefore(3)} durationInFrames={sceneDurations[3]}>
         <SceneFour />
       </Sequence>
-      <Sequence from={600} durationInFrames={sceneDurations[4]}>
+      <Sequence from={sumBefore(4)} durationInFrames={sceneDurations[4]}>
         <SceneFive />
       </Sequence>
-      <Sequence from={750} durationInFrames={sceneDurations[5]}>
+      <Sequence from={sumBefore(5)} durationInFrames={sceneDurations[5]}>
         <SceneSix />
       </Sequence>
     </AbsoluteFill>
   );
 };
+
+export const launchMyIdeaDurationInFrames = totalDuration;

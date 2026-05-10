@@ -10,8 +10,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "tutorial:voiceover": "python scripts/generate_tutorial_voiceover.py",
     "tutorial:studio": "remotion studio remotion/index.ts",
-    "tutorial:render": "remotion render remotion/index.ts AutonomousStartupTutorial renders/autonomous-startup-tutorial.mp4"
+    "tutorial:render": "remotion render remotion/index.ts LaunchMyIdeaAITutorial renders/launchmyidea-ai-tutorial.mp4"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
