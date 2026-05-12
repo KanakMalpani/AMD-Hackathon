@@ -48,6 +48,8 @@ function SignupPage() {
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-weak">Name</label>
           <input
+            name="name"
+            autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Demo Founder"
@@ -59,6 +61,8 @@ function SignupPage() {
           <label className="mb-1 block text-xs uppercase tracking-wider text-weak">Email</label>
           <input
             type="email"
+            name="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@startupworld.ai"
@@ -69,6 +73,8 @@ function SignupPage() {
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-weak">Password</label>
           <PasswordInput
+            name="password"
+            autoComplete="new-password"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
             placeholder="Minimum 8 chars, mixed case + symbol"

@@ -177,6 +177,7 @@ export type Project = {
   simSettings?: SimSettings;
   backendOutput?: string;
   simulationReport?: SimulationReport;
+  simulationJobId?: string;
 };
 
 export type User = {
@@ -388,6 +389,7 @@ export const store = {
               status: "Draft",
               backendOutput: undefined,
               simulationReport: undefined,
+              simulationJobId: undefined,
             }
           : p,
       ),
@@ -464,6 +466,7 @@ export const store = {
     id: string,
     patch: Partial<
       Pick<Project, "activity" | "stages" | "launchReadiness" | "backendOutput" | "simulationReport" | "outputsReady" | "status" | "currentStage">
+      & Pick<Project, "simulationJobId">
     >,
   ) {
     set((s) => ({

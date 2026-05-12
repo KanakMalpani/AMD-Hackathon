@@ -313,6 +313,10 @@ function SimulationPage() {
   const search = Route.useSearch() as { autostart?: number };
   const navigate = useNavigate();
   const project = useStore((s) => s.projects.find((p) => p.id === projectId));
+  const shouldAutostart =
+    !!search.autostart ||
+    (typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("autostart") === "1");
   const [running, setRunning] = useState(false);
   const [runtimeLabel, setRuntimeLabel] = useState("Idle");
   const [jobStartedAt, setJobStartedAt] = useState<number | null>(null);
@@ -320,10 +324,16 @@ function SimulationPage() {
   const [jobId, setJobId] = useState("");
   const startedFromAutostart = useRef(false);
   const pollRef = useRef<number | null>(null);
+  const autostartRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (pollRef.current) window.clearInterval(pollRef.current);
+      if (autostartRef.current) window.clearTimeout(autostartRef.current);
+      startedFromAutostart.current = false;
     };
   }, []);
 
@@ -336,14 +346,38 @@ function SimulationPage() {
   }, [jobStartedAt, running]);
 
   useEffect(() => {
-    if (search.autostart && project && !startedFromAutostart.current) {
+    if (
+      shouldAutostart &&
+      project &&
+      !project.outputsReady &&
+      !project.simulationJobId &&
+      !running &&
+      !startedFromAutostart.current
+    ) {
       startedFromAutostart.current = true;
-      window.setTimeout(() => {
+      autostartRef.current = window.setTimeout(() => {
         void start();
       }, 250);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project?.id]);
+  }, [project?.id, project?.outputsReady, project?.simulationJobId, running, shouldAutostart]);
+
+  useEffect(() => {
+    if (!project?.simulationJobId || project.outputsReady || running) return;
+    setJobId(project.simulationJobId);
+    setRunning(true);
+    setRuntimeLabel("Reconnecting to runtime...");
+    void pollStatus(project.simulationJobId);
+    pollRef.current = window.setInterval(() => {
+      void pollStatus(project.simulationJobId!);
+    }, 1200);
+    return () => {
+      if (pollRef.current) {
+        window.clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [project?.outputsReady, project?.simulationJobId, running]);
 
   if (!project) {
     return (
@@ -429,7 +463,9 @@ function SimulationPage() {
       outputsReady: true,
       backendOutput: JSON.stringify(report, null, 2),
       status: "Launch Ready",
+      simulationJobId: undefined,
     });
+    if (!mountedRef.current) return;
     setRuntimeLabel("Browser demo runtime");
     setRunning(false);
     setElapsed(3200);
@@ -465,9 +501,11 @@ function SimulationPage() {
       const status = await getJobStatus(activeJobId);
       syncFromStatus(status);
 
-      if (status.started_at) {
+      if (status.started_at && mountedRef.current) {
         setJobStartedAt(status.started_at);
       }
+
+      if (!mountedRef.current) return;
 
       if (status.runtime?.mock_mode) {
         setRuntimeLabel("Mock multi-agent runtime");
@@ -489,6 +527,7 @@ function SimulationPage() {
           simulationReport: status.report,
           launchReadiness: status.readiness ?? status.report?.readiness_score ?? 90,
           status: "Launch Ready",
+          simulationJobId: undefined,
         });
         setElapsed(
           status.completed_at && status.started_at
@@ -501,6 +540,7 @@ function SimulationPage() {
         clearPolling();
         setRunning(false);
         setRuntimeLabel("Runtime failed");
+        store.syncSimulation(project.id, { simulationJobId: undefined, status: "Needs Review" });
         toast.error(status.error ?? "Simulation failed.");
       }
     } catch (error) {
@@ -521,7 +561,9 @@ function SimulationPage() {
 
     try {
       const response = await generateStartup(prompt);
+      if (!mountedRef.current) return;
       setJobId(response.job_id);
+      store.syncSimulation(project.id, { simulationJobId: response.job_id, status: "Simulating" });
       setRuntimeLabel(
         response.runtime?.mock_mode
           ? "Mock multi-agent runtime"
@@ -542,12 +584,15 @@ function SimulationPage() {
       );
 
       await pollStatus(response.job_id);
+      if (!mountedRef.current) return;
       pollRef.current = window.setInterval(() => {
         void pollStatus(response.job_id);
       }, 1200);
     } catch (err) {
       console.error(err);
-      runBrowserFallback(prompt);
+      if (mountedRef.current) {
+        runBrowserFallback(prompt);
+      }
     }
   }
 

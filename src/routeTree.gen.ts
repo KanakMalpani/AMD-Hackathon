@@ -25,6 +25,7 @@ import { Route as AppProjectsProjectIdPromptsRouteImport } from './routes/_app.p
 import { Route as AppProjectsProjectIdNodesRouteImport } from './routes/_app.projects.$projectId.nodes'
 import { Route as AppProjectsProjectIdMarketingRouteImport } from './routes/_app.projects.$projectId.marketing'
 import { Route as AppProjectsProjectIdDashboardRouteImport } from './routes/_app.projects.$projectId.dashboard'
+import { Route as AppProjectsProjectIdBriefRouteImport } from './routes/_app.projects.$projectId.brief'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -112,6 +113,12 @@ const AppProjectsProjectIdDashboardRoute =
     path: '/projects/$projectId/dashboard',
     getParentRoute: () => AppRoute,
   } as any)
+const AppProjectsProjectIdBriefRoute =
+  AppProjectsProjectIdBriefRouteImport.update({
+    id: '/projects/$projectId/brief',
+    path: '/projects/$projectId/brief',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/projects/': typeof AppProjectsIndexRoute
+  '/projects/$projectId/brief': typeof AppProjectsProjectIdBriefRoute
   '/projects/$projectId/dashboard': typeof AppProjectsProjectIdDashboardRoute
   '/projects/$projectId/marketing': typeof AppProjectsProjectIdMarketingRoute
   '/projects/$projectId/nodes': typeof AppProjectsProjectIdNodesRoute
@@ -139,6 +147,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/settings': typeof AppSettingsRoute
   '/projects': typeof AppProjectsIndexRoute
+  '/projects/$projectId/brief': typeof AppProjectsProjectIdBriefRoute
   '/projects/$projectId/dashboard': typeof AppProjectsProjectIdDashboardRoute
   '/projects/$projectId/marketing': typeof AppProjectsProjectIdMarketingRoute
   '/projects/$projectId/nodes': typeof AppProjectsProjectIdNodesRoute
@@ -158,6 +167,7 @@ export interface FileRoutesById {
   '/_app/profile': typeof AppProfileRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/projects/': typeof AppProjectsIndexRoute
+  '/_app/projects/$projectId/brief': typeof AppProjectsProjectIdBriefRoute
   '/_app/projects/$projectId/dashboard': typeof AppProjectsProjectIdDashboardRoute
   '/_app/projects/$projectId/marketing': typeof AppProjectsProjectIdMarketingRoute
   '/_app/projects/$projectId/nodes': typeof AppProjectsProjectIdNodesRoute
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/projects/'
+    | '/projects/$projectId/brief'
     | '/projects/$projectId/dashboard'
     | '/projects/$projectId/marketing'
     | '/projects/$projectId/nodes'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/projects'
+    | '/projects/$projectId/brief'
     | '/projects/$projectId/dashboard'
     | '/projects/$projectId/marketing'
     | '/projects/$projectId/nodes'
@@ -212,6 +224,7 @@ export interface FileRouteTypes {
     | '/_app/profile'
     | '/_app/settings'
     | '/_app/projects/'
+    | '/_app/projects/$projectId/brief'
     | '/_app/projects/$projectId/dashboard'
     | '/_app/projects/$projectId/marketing'
     | '/_app/projects/$projectId/nodes'
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjectsProjectIdDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/projects/$projectId/brief': {
+      id: '/_app/projects/$projectId/brief'
+      path: '/projects/$projectId/brief'
+      fullPath: '/projects/$projectId/brief'
+      preLoaderRoute: typeof AppProjectsProjectIdBriefRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -351,6 +371,7 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppProjectsIndexRoute: typeof AppProjectsIndexRoute
+  AppProjectsProjectIdBriefRoute: typeof AppProjectsProjectIdBriefRoute
   AppProjectsProjectIdDashboardRoute: typeof AppProjectsProjectIdDashboardRoute
   AppProjectsProjectIdMarketingRoute: typeof AppProjectsProjectIdMarketingRoute
   AppProjectsProjectIdNodesRoute: typeof AppProjectsProjectIdNodesRoute
@@ -364,6 +385,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppProjectsIndexRoute: AppProjectsIndexRoute,
+  AppProjectsProjectIdBriefRoute: AppProjectsProjectIdBriefRoute,
   AppProjectsProjectIdDashboardRoute: AppProjectsProjectIdDashboardRoute,
   AppProjectsProjectIdMarketingRoute: AppProjectsProjectIdMarketingRoute,
   AppProjectsProjectIdNodesRoute: AppProjectsProjectIdNodesRoute,

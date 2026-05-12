@@ -11,6 +11,22 @@ type NodeItem = {
   kind: "stage" | "agent";
 };
 
+type Connection = {
+  from: string;
+  to: string;
+};
+
+const STAGE_CONNECTIONS: Connection[] = [
+  { from: "seed", to: "strategy" },
+  { from: "strategy", to: "world" },
+  { from: "strategy", to: "build" },
+  { from: "agents", to: "build" },
+  { from: "build", to: "launch" },
+  { from: "build", to: "critic" },
+  { from: "finance", to: "critic" },
+  { from: "critic", to: "report" },
+];
+
 function colorFor(status: NodeItem["status"]) {
   if (status === "complete") {
     return {
@@ -73,16 +89,44 @@ export function SimulationNodeGraph({
     kind: "agent",
   }));
 
-  const connections = [
-    ...stageNodes.slice(0, -1).map((node, index) => ({
-      from: node,
-      to: stageNodes[index + 1],
-    })),
-    ...agentNodes.map((node, index) => ({
-      from: stageNodes[Math.min(3 + Math.floor(index / 2), stageNodes.length - 1)],
-      to: node,
-    })),
-  ];
+  const nodeById = new Map([...stageNodes, ...agentNodes].map((node) => [node.id, node]));
+
+  const stageConnections = STAGE_CONNECTIONS.map((connection) => ({
+    from: nodeById.get(connection.from),
+    to: nodeById.get(connection.to),
+  })).filter((connection): connection is { from: NodeItem; to: NodeItem } => Boolean(connection.from && connection.to));
+
+  const agentAnchorIds = ["world", "launch", "report"];
+  const agentConnections = agentNodes
+    .map((node, index) => {
+      const anchorId = agentAnchorIds[Math.min(Math.floor(index / 2), agentAnchorIds.length - 1)];
+      const from = nodeById.get(anchorId);
+      return from ? { from, to: node } : null;
+    })
+    .filter((connection): connection is { from: NodeItem; to: NodeItem } => Boolean(connection));
+
+  const connections = [...stageConnections, ...agentConnections];
+
+  function buildPath(from: NodeItem, to: NodeItem) {
+    const x1 = from.x + 180;
+    const y1 = from.y + 54;
+    const x2 = to.x;
+    const y2 = to.y + 54;
+    const columnGap = 36;
+    const rowGap = 26;
+
+    if (Math.abs(y1 - y2) < 8 || Math.abs(x1 - x2) < 8) {
+      return `M ${x1} ${y1} L ${x2} ${y2}`;
+    }
+
+    if (x2 >= x1) {
+      const elbowX = x1 + columnGap;
+      return `M ${x1} ${y1} L ${elbowX} ${y1} L ${elbowX} ${y2} L ${x2} ${y2}`;
+    }
+
+    const elbowY = y1 + (y2 > y1 ? rowGap : -rowGap);
+    return `M ${x1} ${y1} L ${x1} ${elbowY} L ${x2} ${elbowY} L ${x2} ${y2}`;
+  }
 
   return (
     <div
@@ -106,12 +150,7 @@ export function SimulationNodeGraph({
             connection.from.status === "running" ||
             connection.to.status === "complete" ||
             connection.to.status === "running";
-          const x1 = connection.from.x + 180;
-          const y1 = connection.from.y + 54;
-          const x2 = connection.to.x;
-          const y2 = connection.to.y + 54;
-          const midX = (x1 + x2) / 2;
-          const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+          const path = buildPath(connection.from, connection.to);
 
           return (
             <motion.path

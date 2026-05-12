@@ -48,6 +48,8 @@ function LoginPage() {
           <label className="mb-1 block text-xs uppercase tracking-wider text-weak">Email</label>
           <input
             type="email"
+            name="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@startupworld.ai"
@@ -58,6 +60,8 @@ function LoginPage() {
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-weak">Password</label>
           <PasswordInput
+            name="password"
+            autoComplete="current-password"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
             placeholder="••••••••"

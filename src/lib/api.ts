@@ -1,6 +1,6 @@
 import type { ActivityMsg, PromptData, SimulationReport, Stage } from "@/lib/app-store";
 
-const DEFAULT_API_BASE = "http://localhost:8001";
+const DEFAULT_API_BASE = "http://127.0.0.1:8001";
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
