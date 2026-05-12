@@ -52,13 +52,15 @@ function NodesPage() {
           stages={project.stages}
           agents={project.simulationReport?.agents}
           activity={project.activity}
+          stageInsights={project.simulationReport?.node_insights}
+          agentFindings={project.simulationReport?.agent_findings}
         />
 
         <div className="space-y-4">
           <Panel title="How to read it" icon={<Network className="h-4 w-4 text-primary" />}>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li>Left side nodes are the simulation stages.</li>
-              <li>Right side nodes are the agents working on those stages.</li>
+              <li>Left side nodes are the simulation stages, now annotated with idea-specific research insights.</li>
+              <li>Right side nodes are the agents, each showing the key finding they contributed.</li>
               <li>Green means finished, red means live, gray means waiting.</li>
             </ul>
           </Panel>
@@ -66,18 +68,38 @@ function NodesPage() {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>Start on the Brief page.</li>
               <li>Run the Simulation page.</li>
-              <li>Open this Nodes page to show the orchestration visually.</li>
+              <li>Open this Nodes page to show the research-to-execution flow visually.</li>
               <li>Finish with Outputs and Live Preview.</li>
             </ul>
           </Panel>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="mb-6 grid gap-4 md:grid-cols-3">
         <SummaryCard label="Nodes active" value={`${project.stages.length + (project.simulationReport?.agents.length ?? 0)}`} />
         <SummaryCard label="Activity events" value={`${project.activity.length}`} />
         <SummaryCard label="Readiness" value={`${project.simulationReport?.readiness_score ?? project.launchReadiness}/100`} />
       </div>
+
+      {project.simulationReport?.research.sources?.length ? (
+        <Panel title="Grounding Sources" icon={<Sparkles className="h-4 w-4 text-primary" />}>
+          <div className="grid gap-3 md:grid-cols-2">
+            {project.simulationReport.research.sources.slice(0, 4).map((source) => (
+              <a
+                key={source.url || source.title}
+                href={source.url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border p-4 text-sm transition-colors hover:border-[rgba(255,45,45,0.5)]"
+                style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}
+              >
+                <div className="font-semibold">{source.title}</div>
+                <p className="mt-2 text-xs text-muted-foreground">{source.note}</p>
+              </a>
+            ))}
+          </div>
+        </Panel>
+      ) : null}
     </AppLayout>
   );
 }

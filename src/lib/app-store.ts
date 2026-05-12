@@ -53,6 +53,28 @@ export type AgentPersona = {
   deliverable: string;
 };
 
+export type ValidationScorecard = {
+  problem: number;
+  market: number;
+  mvp: number;
+  differentiation: number;
+  revenue: number;
+  execution: number;
+  overall: number;
+};
+
+export type ResearchSource = {
+  title: string;
+  url: string;
+  note: string;
+};
+
+export type GrowthMonth = {
+  label: string;
+  users: number;
+  usersLabel: string;
+};
+
 export type SimulationReport = {
   title: string;
   readiness_score: number;
@@ -76,12 +98,30 @@ export type SimulationReport = {
     simulation_modes: string[];
   };
   agents: AgentPersona[];
+  research: {
+    summary: string;
+    target_user: string;
+    target_pain: string;
+    competitors: string[];
+    demand_signals: string[];
+    monetization_signals: string[];
+    sources: ResearchSource[];
+  };
+  validation_scorecard: ValidationScorecard;
+  growth_projection: {
+    months: GrowthMonth[];
+    summary: string;
+  };
+  node_insights: Record<string, string>;
+  agent_findings: Record<string, string>;
   outputs: {
     validation: {
       market_opportunity: string;
       why_now: string;
       differentiation: string;
       risks: string[];
+      target_user: string;
+      competitors: string[];
     };
     product: {
       north_star: string;
@@ -100,6 +140,12 @@ export type SimulationReport = {
       channels: string[];
       hook_lines: string[];
       judge_pitch: string;
+      target_audience: string;
+      positioning: string;
+      sample_posts: string[];
+      outreach: string;
+      best_channel: string;
+      next_step: string;
     };
     finance: {
       pricing: string;
@@ -161,7 +207,7 @@ const DEFAULT_USER: User = {
 };
 
 export const STAGE_TEMPLATE: Omit<Stage, "status">[] = [
-  { key: "seed", title: "Reality Seed", description: "Startup premise and source signals locked" },
+  { key: "seed", title: "Reality Seed", description: "Startup premise and live market signals locked" },
   { key: "strategy", title: "CEO Strategy", description: "Thesis, wedge, and mission drafted" },
   { key: "world", title: "World Model", description: "Market forces and simulation modes assembled" },
   { key: "agents", title: "Agent Cast", description: "Specialist personas and responsibilities generated" },
@@ -172,17 +218,77 @@ export const STAGE_TEMPLATE: Omit<Stage, "status">[] = [
   { key: "report", title: "AMD Report", description: "Final startup-world report published" },
 ];
 
+const DEMO_PROMPT: PromptData = {
+  idea: "LaunchMyIdea AI is a multi-agent startup simulator that turns one raw startup idea into strategy, product scope, execution, marketing, and finance outputs.",
+  audience: "Founders, hackathon judges, startup operators, and technical builders.",
+  problem: "Builders need a faster and more visible way to validate whether a startup idea deserves time, code, and market attention.",
+  businessModel: "Freemium demo workspace with premium simulation depth and team collaboration.",
+  mvpScope: "Reality seed brief, visible agent runtime, simulation report, node graph, and launch plan.",
+  tone: "Cinematic, technical, and founder-grade.",
+  constraints: "Preserve LaunchMyIdea AI branding, keep the runtime visible, and make the AMD story feel product-native.",
+  seedContext: "Use the startup idea as a world seed and stress-test it across product, engineering, marketing, finance, and critic agents.",
+  keySignals: "Agentic tooling, founder validation fatigue, hackathon demo expectations, and demand for visible orchestration.",
+  simulationGoal: "Prove whether the idea can become a credible, demo-worthy startup world with a clear next step.",
+  amdFocus: "Show AMD-backed inference as the reason multiple specialist agents can reason fast enough to feel live.",
+};
+
+const DEMO_SIM_SETTINGS: SimSettings = {
+  depth: "Balanced",
+  strictness: "Normal",
+  outputs: ["Full Launch Package"],
+  includeAMD: true,
+  includeCritic: true,
+  includeCode: true,
+};
+
 function freshStages(): Stage[] {
-  return STAGE_TEMPLATE.map((s, i) => ({ ...s, status: i === 0 ? "complete" : "pending" }));
+  return STAGE_TEMPLATE.map((s) => ({ ...s, status: "pending" }));
+}
+
+function buildDemoProject(): Project {
+  return {
+    id: "demo",
+    title: "LaunchMyIdea Demo",
+    idea: DEMO_PROMPT.idea,
+    createdAt: 1760000000000,
+    status: "Draft",
+    launchReadiness: 0,
+    currentStage: 0,
+    stages: freshStages(),
+    activity: [],
+    outputsReady: false,
+    prompt: DEMO_PROMPT,
+    promptHistory: [
+      {
+        id: "prompt_demo",
+        title: "LaunchMyIdea Demo Brief",
+        data: DEMO_PROMPT,
+        createdAt: 1760000000000,
+      },
+    ],
+    simSettings: DEMO_SIM_SETTINGS,
+  };
+}
+
+function ensureDemoProject(projects: Project[]): Project[] {
+  return projects.some((project) => project.id === "demo")
+    ? projects
+    : [buildDemoProject(), ...projects];
 }
 
 function load(): State {
-  if (typeof window === "undefined") return { user: null, projects: [] };
+  if (typeof window === "undefined") return { user: null, projects: [buildDemoProject()] };
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw) as State;
+      return {
+        ...parsed,
+        projects: ensureDemoProject(parsed.projects ?? []),
+      };
+    }
   } catch {}
-  return { user: null, projects: [] };
+  return { user: null, projects: [buildDemoProject()] };
 }
 
 let state: State = load();
@@ -211,6 +317,7 @@ export const store = {
   login(email: string, name?: string) {
     set((s) => ({
       ...s,
+      projects: ensureDemoProject(s.projects),
       user: {
         ...DEFAULT_USER,
         ...(s.user ?? {}),
@@ -220,10 +327,18 @@ export const store = {
     }));
   },
   signup(name: string, email: string) {
-    set((s) => ({ ...s, user: { ...DEFAULT_USER, name, email } }));
+    set((s) => ({
+      ...s,
+      projects: ensureDemoProject(s.projects),
+      user: { ...DEFAULT_USER, name, email },
+    }));
   },
   loginDemo() {
-    set((s) => ({ ...s, user: { ...DEFAULT_USER } }));
+    set((s) => ({
+      ...s,
+      projects: ensureDemoProject(s.projects),
+      user: { ...DEFAULT_USER },
+    }));
   },
   logout() {
     set((s) => ({ ...s, user: null }));

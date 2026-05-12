@@ -99,15 +99,15 @@ This build now supports a richer startup-world simulation flow inspired by MiroF
 Use these environment variables for the backend:
 ```bash
 USE_MOCK=false
-MODEL_API_BASE_URL=https://openrouter.ai/api/v1
-MODEL_API_MODEL=openrouter/auto
+MODEL_API_BASE_URL=https://api.groq.com/openai/v1
+MODEL_API_MODEL=llama-3.1-8b-instant
 MODEL_API_KEY=your_api_key
 MODEL_API_TEMPERATURE=0.25
 ```
 
 Why this default is used:
-- `openrouter/auto` is OpenRouter's official auto-router, which chooses from a curated pool of strong models based on the prompt.
-- This is the safest fast default when you want better simulation quality without hard-locking the app to one model version.
+- `llama-3.1-8b-instant` on Groq is a strong free-tier-friendly default for fast startup simulation loops.
+- This keeps the app usable without paid OpenRouter credits while still supporting live research-backed validation and agent orchestration.
 
 You can still point the same backend at an AMD-hosted OpenAI-compatible endpoint later:
 - set `MODEL_API_BASE_URL` to your AMD endpoint
@@ -117,7 +117,8 @@ You can still point the same backend at an AMD-hosted OpenAI-compatible endpoint
 
 Backward compatibility note:
 - the backend still accepts the older `AMD_LLM_*` variables if you already use them
-- `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` are also accepted as aliases
+- `GROQ_API_KEY` and `GROQ_MODEL` are accepted as aliases
+- `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` are still accepted if you switch providers later
 
 The frontend now expects the backend to return a structured simulation report with:
 - startup brief

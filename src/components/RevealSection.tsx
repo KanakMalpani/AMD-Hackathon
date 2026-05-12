@@ -1,5 +1,5 @@
-import { motion, useInView } from "framer-motion";
-import { useRef, type ReactNode } from "react";
+import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 
 export function RevealSection({
   children,
@@ -12,14 +12,12 @@ export function RevealSection({
   className?: string;
   y?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
+      initial={false}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+      style={{ opacity: 1, transform: "translateY(0px)" }}
       className={className}
     >
       {children}

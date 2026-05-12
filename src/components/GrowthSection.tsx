@@ -31,8 +31,8 @@ export function GrowthSection() {
       <div ref={ref} className="mt-14 grid gap-10 lg:grid-cols-2">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
             className="rounded-2xl border border-border p-5"
             style={{ background: "#0e0e0e" }}
@@ -48,14 +48,14 @@ export function GrowthSection() {
               <div className="h-2 w-5/6 rounded bg-[#1a1a1a]" />
             </div>
             <div className="mt-4 inline-flex items-center gap-2 text-xs text-weak">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary/40" /> unstructured · unverified
+              <span className="h-1.5 w-1.5 rounded-full bg-primary/40" /> unstructured - unverified
             </div>
           </motion.div>
 
           <div className="relative h-px w-16 sm:w-20">
             <motion.div
-              initial={{ scaleX: 0 }}
-              animate={inView ? { scaleX: 1 } : {}}
+              initial={false}
+              animate={{ scaleX: 1 }}
               transition={{ duration: 0.9, delay: 0.5 }}
               className="h-px w-full origin-left"
               style={{ background: "#3CFF7A" }}
@@ -64,8 +64,8 @@ export function GrowthSection() {
           </div>
 
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
+            initial={false}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
             className="rounded-2xl border p-5"
             style={{
@@ -90,9 +90,9 @@ export function GrowthSection() {
               ].map((t, i) => (
                 <motion.li
                   key={t}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={inView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ delay: 1 + i * 0.15 }}
+                  initial={false}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: (inView ? 1 : 0) + i * 0.15 }}
                   className="flex items-center gap-2 text-foreground"
                 >
                   <Check className="h-4 w-4 text-[#3CFF7A]" />
@@ -107,9 +107,8 @@ export function GrowthSection() {
           {metrics.map((m, i) => (
             <motion.div
               key={m.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className="rounded-2xl border border-border p-5"
               style={{ background: "#111111" }}

@@ -40,15 +40,19 @@ export function SimulationNodeGraph({
   stages,
   agents,
   activity,
+  stageInsights,
+  agentFindings,
 }: {
   stages: Stage[];
   agents?: AgentPersona[];
   activity: ActivityMsg[];
+  stageInsights?: Record<string, string>;
+  agentFindings?: Record<string, string>;
 }) {
   const stageNodes: NodeItem[] = stages.map((stage, index) => ({
     id: stage.key,
     title: stage.title,
-    subtitle: stage.description,
+    subtitle: stageInsights?.[stage.key] ?? stage.description,
     x: 110 + (index % 3) * 280,
     y: 90 + Math.floor(index / 3) * 170,
     status: stage.status,
@@ -58,7 +62,7 @@ export function SimulationNodeGraph({
   const agentNodes: NodeItem[] = (agents ?? []).slice(0, 6).map((agent, index) => ({
     id: agent.name,
     title: agent.name,
-    subtitle: agent.role,
+    subtitle: agentFindings?.[agent.name] ?? agent.role,
     x: 980 + (index % 2) * 220,
     y: 100 + Math.floor(index / 2) * 150,
     status: activity.some((item) => item.agent === agent.name && item.done)

@@ -1,4 +1,3 @@
-import { useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 export function CountUpMetric({
@@ -15,11 +14,9 @@ export function CountUpMetric({
   decimals?: number;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
   const [n, setN] = useState(0);
 
   useEffect(() => {
-    if (!inView) return;
     const start = performance.now();
     let raf = 0;
     let last = 0;
@@ -33,7 +30,7 @@ export function CountUpMetric({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [inView, value, duration]);
+  }, [value, duration]);
 
   return (
     <span ref={ref}>
@@ -54,14 +51,13 @@ export function CountUpBar({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
   const [width, setWidth] = useState(0);
 
   useEffect(() => {
-    if (!inView) return;
+    setWidth(0);
     const t = setTimeout(() => setWidth(pct), delay * 1000);
     return () => clearTimeout(t);
-  }, [inView, pct, delay]);
+  }, [pct, delay]);
 
   return (
     <div ref={ref} className="h-1.5 w-full overflow-hidden rounded-full bg-[#181818]">

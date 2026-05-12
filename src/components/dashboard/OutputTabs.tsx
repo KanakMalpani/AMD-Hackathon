@@ -159,9 +159,33 @@ function ValidationTab({ report, fallback }: { report?: SimulationReport; fallba
 
   return (
     <div className="space-y-4">
+      <CardGrid>
+        <Field label="Target user">{report.outputs.validation.target_user}</Field>
+        <Field label="Readiness score">{report.validation_scorecard.overall}/100</Field>
+      </CardGrid>
       <Field label="Market opportunity">{report.outputs.validation.market_opportunity}</Field>
       <Field label="Why now">{report.outputs.validation.why_now}</Field>
       <Field label="Differentiation">{report.outputs.validation.differentiation}</Field>
+      <Field label="Competitors"><Bullets items={report.outputs.validation.competitors} /></Field>
+      {report.research.sources.length ? (
+        <Field label="Sources">
+          <div className="space-y-2">
+            {report.research.sources.slice(0, 4).map((source) => (
+              <a
+                key={source.url || source.title}
+                href={source.url}
+                target="_blank"
+                rel="noreferrer"
+                className="block rounded-lg border p-3 text-sm text-muted-foreground transition-colors hover:border-[rgba(255,45,45,0.45)]"
+                style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}
+              >
+                <div className="font-semibold text-foreground">{source.title}</div>
+                <div className="mt-1">{source.note}</div>
+              </a>
+            ))}
+          </div>
+        </Field>
+      ) : null}
       <Field label="Risks"><Bullets items={report.outputs.validation.risks} /></Field>
     </div>
   );
@@ -211,11 +235,18 @@ function LaunchTab({ report, fallback }: { report?: SimulationReport; fallback: 
 
   return (
     <div className="space-y-4">
+      <CardGrid>
+        <Field label="Target audience">{report.outputs.marketing.target_audience}</Field>
+        <Field label="Best channel">{report.outputs.marketing.best_channel}</Field>
+      </CardGrid>
       <Field label="Narrative">{report.outputs.marketing.narrative}</Field>
+      <Field label="Positioning">{report.outputs.marketing.positioning}</Field>
       <CardGrid>
         <Field label="Channels"><Bullets items={report.outputs.marketing.channels} /></Field>
         <Field label="Hook lines"><Bullets items={report.outputs.marketing.hook_lines} /></Field>
       </CardGrid>
+      <Field label="Sample posts"><Bullets items={report.outputs.marketing.sample_posts} /></Field>
+      <Field label="Outreach">{report.outputs.marketing.outreach}</Field>
       <Field label="Judge pitch">
         <div className="rounded-lg border p-3 text-sm text-muted-foreground" style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}>
           {report.outputs.marketing.judge_pitch}

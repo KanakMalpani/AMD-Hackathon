@@ -84,7 +84,7 @@ function ProjectSwitcher({ activeId }: { activeId?: string }) {
             onClick={() => setOpen(false)}
             className="mt-1 block rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-[#181818]"
           >
-            View all workspaces →
+            View all workspaces {"->"}
           </Link>
         </div>
       )}
@@ -332,12 +332,10 @@ export function AppLayout({
   topbar: ReactNode;
   projectId?: string;
 }) {
-  // Try to derive projectId from URL params if not passed
   const params = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? params?.projectId;
   return (
     <div className="min-h-screen">
-
       <Sidebar projectId={id} />
       <div className="md:pl-64">
         {topbar}

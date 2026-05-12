@@ -19,8 +19,10 @@ import { AMDComputePanel } from "@/components/dashboard/AMDComputePanel";
 import {
   store,
   useStore,
+  type GrowthMonth,
   type PromptData,
   type SimulationReport,
+  type ValidationScorecard,
 } from "@/lib/app-store";
 import { buildOutputs } from "@/lib/mock-outputs";
 import { generateStartup, getJobStatus, type JobStatusResponse } from "@/lib/api";
@@ -54,7 +56,30 @@ function buildBrowserFallbackReport(prompt: PromptData): SimulationReport {
   const problem = prompt.problem || "founders need a faster way to validate and pressure-test startup ideas";
   const businessModel = prompt.businessModel || "pro workspace subscription with team expansion";
   const channels = ["Hackathon demo", "Founder communities", "LinkedIn build thread", "Short-form walkthrough"];
-  const readiness = 84;
+  const seed = Array.from(idea).reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+  const scorecard: ValidationScorecard = {
+    problem: 72 + (seed % 18),
+    market: 66 + ((seed >> 1) % 18),
+    mvp: 74 + ((seed >> 2) % 16),
+    differentiation: 62 + ((seed >> 3) % 20),
+    revenue: 60 + ((seed >> 4) % 18),
+    execution: 72 + ((seed >> 5) % 18),
+    overall: 0,
+  };
+  scorecard.overall = Math.round(
+    (scorecard.problem +
+      scorecard.market +
+      scorecard.mvp +
+      scorecard.differentiation +
+      scorecard.revenue +
+      scorecard.execution) /
+      6,
+  );
+  const readiness = scorecard.overall;
+  const months: GrowthMonth[] = Array.from({ length: 6 }, (_, index) => {
+    const users = Math.round((120 + (seed % 120)) * Math.pow(1.45, index));
+    return { label: `M${index + 1}`, users, usersLabel: users >= 1000 ? `${(users / 1000).toFixed(1).replace(".0", "")}K` : `${users}` };
+  });
   const previewHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -161,6 +186,48 @@ function buildBrowserFallbackReport(prompt: PromptData): SimulationReport {
         deliverable: "Risks and iteration path",
       },
     ],
+    research: {
+      summary:
+        "Browser demo mode is still idea-specific: it synthesizes the prompt into a differentiated startup story so each run changes instead of reusing one static scorecard.",
+      target_user: audience,
+      target_pain: problem,
+      competitors: ["general AI startup tools", "blank-doc planning workflows", "single-chat validation tools"],
+      demand_signals: [
+        "Founders increasingly want execution support instead of broad advice.",
+        "Visible orchestration improves trust during demos.",
+        "Faster startup iteration increases appetite for simulation-first workflows.",
+      ],
+      monetization_signals: [
+        "Founder workspaces can support subscription pricing.",
+        "Richer reports and exports create upgrade pressure.",
+        "Collaboration features support team tiers later.",
+      ],
+      sources: [],
+    },
+    validation_scorecard: scorecard,
+    growth_projection: {
+      months,
+      summary: `Projected traction reaches ${months[5].usersLabel} active users by month 6 if the first wedge converts.`,
+    },
+    node_insights: {
+      seed: `Idea locked around ${audience}.`,
+      strategy: "Thesis framed to make the orchestration story visible.",
+      world: "Market pressure modeled around trust, speed, and differentiation.",
+      agents: "Six specialists split the company into inspectable decisions.",
+      build: "Frontend, backend, and report system synchronized around one source of truth.",
+      launch: `Best demo channel: ${channels[0]}.`,
+      finance: "Subscription-led monetization remains the cleanest first model.",
+      critic: "Repeat usage is the biggest pressure point.",
+      report: "Final report combines narrative, evidence, and next actions.",
+    },
+    agent_findings: {
+      "CEO Agent": "Visible execution is the wedge.",
+      "Product Agent": "The report should rerun with tighter constraints.",
+      "Engineer Agent": "The report must drive every downstream view.",
+      "Marketing Agent": channels[0],
+      "Finance Agent": "Subscription-led expansion",
+      "Critic Agent": "The first wow moment must become a habit.",
+    },
     outputs: {
       validation: {
         market_opportunity: `${audience} already need faster, more visible startup validation loops.`,
@@ -171,6 +238,8 @@ function buildBrowserFallbackReport(prompt: PromptData): SimulationReport {
           "The runtime story needs real compute backing for production credibility.",
           "Too much UI complexity can dilute the core pitch.",
         ],
+        target_user: audience,
+        competitors: ["general AI startup tools", "blank-doc planning workflows", "single-chat validation tools"],
       },
       product: {
         north_star: "Give founders a startup mirror world they can interrogate before spending real money and time.",
@@ -205,6 +274,16 @@ function buildBrowserFallbackReport(prompt: PromptData): SimulationReport {
         ],
         judge_pitch:
           "We transformed startup planning into an inspectable agent system that can later be powered by AMD-hosted model inference.",
+        target_audience: audience,
+        positioning: "A visible startup simulation that turns one idea into a research-backed launch plan.",
+        sample_posts: [
+          `${idea} just became a visible startup system instead of a static pitch.`,
+          "Six agents, one idea, one report - and every page stays in sync.",
+          "This is what startup validation looks like when the process is part of the product.",
+        ],
+        outreach: `Subject: quick idea for ${audience}\n\nHi {first_name}, we built LaunchMyIdea AI to pressure-test this kind of startup idea in one visible run. Want to take a look?`,
+        best_channel: channels[0],
+        next_step: `Run a 7-day test on ${channels[0]} with one proof artifact and one landing promise.`,
       },
       finance: {
         pricing: "Free demo tier, pro founder tier, and team workspace tier.",
@@ -392,6 +471,8 @@ function SimulationPage() {
 
       if (status.runtime?.mock_mode) {
         setRuntimeLabel("Mock multi-agent runtime");
+      } else if (status.runtime?.provider === "groq") {
+        setRuntimeLabel("Groq multi-agent runtime");
       } else if (status.runtime?.provider === "openrouter") {
         setRuntimeLabel("OpenRouter multi-agent runtime");
       } else if (status.runtime?.mode === "multi-agent") {
@@ -444,6 +525,8 @@ function SimulationPage() {
       setRuntimeLabel(
         response.runtime?.mock_mode
           ? "Mock multi-agent runtime"
+          : response.runtime?.provider === "groq"
+            ? "Groq multi-agent runtime"
           : response.runtime?.provider === "openrouter"
             ? "OpenRouter multi-agent runtime"
             : "AMD multi-agent runtime",
@@ -451,6 +534,8 @@ function SimulationPage() {
       toast.info(
         response.runtime?.mock_mode
           ? "Mock multi-agent runtime started."
+          : response.runtime?.provider === "groq"
+            ? "Groq multi-agent runtime engaged."
           : response.runtime?.provider === "openrouter"
             ? "OpenRouter multi-agent runtime engaged."
           : "AMD multi-agent runtime engaged.",

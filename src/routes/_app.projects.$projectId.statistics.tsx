@@ -1,11 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, AlertTriangle, PencilLine, Activity, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, PencilLine, Activity, BarChart3, Globe } from "lucide-react";
 import { AppLayout, Topbar } from "@/components/AppShell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { useStore } from "@/lib/app-store";
-import { buildOutputs, personaFor } from "@/lib/mock-outputs";
+import {
+  getAssumptions,
+  getBreakdown,
+  getCompetitors,
+  getEffortBars,
+  getGrowthProjection,
+  getResearchSources,
+  getRiskBars,
+  getTargetAudience,
+} from "@/lib/report-view";
 
 export const Route = createFileRoute("/_app/projects/$projectId/statistics")({
   head: () => ({ meta: [{ title: "Insights - LaunchMyIdea AI" }] }),
@@ -47,19 +56,25 @@ function StatisticsPage() {
     );
   }
 
-  const out = buildOutputs(project);
-  const persona = personaFor(project.idea);
-  const seriesK = out.growth.months.map((m) => m.users);
-  const seriesLabels = out.growth.months.map((m) => m.usersLabel);
-  const lastUsersLabel = out.growth.months[out.growth.months.length - 1].usersLabel;
+  const report = project.simulationReport;
+  const breakdown = getBreakdown(project);
+  const growth = getGrowthProjection(project);
+  const seriesK = growth.months.map((m) => m.users);
+  const seriesLabels = growth.months.map((m) => m.usersLabel);
+  const lastUsersLabel = growth.months[growth.months.length - 1]?.usersLabel ?? "0";
+  const riskBars = getRiskBars(project);
+  const effortBars = getEffortBars(project);
+  const assumptions = getAssumptions(project);
+  const competitors = getCompetitors(project);
+  const sources = getResearchSources(report);
 
   const overview = [
     { label: "Launch readiness", value: `${project.launchReadiness}/100`, trend: "up" as const, tone: "green" as const },
-    { label: "Market validation", value: `${out.breakdown.market}%`, trend: "up" as const, tone: "green" as const },
-    { label: "MVP feasibility", value: `${out.breakdown.mvp}%`, trend: "up" as const, tone: "green" as const },
+    { label: "Market validation", value: `${breakdown.market}%`, trend: "up" as const, tone: "green" as const },
+    { label: "MVP feasibility", value: `${breakdown.mvp}%`, trend: "up" as const, tone: "green" as const },
     { label: "Growth potential", value: `${lastUsersLabel} users / mo 6`, trend: "up" as const, tone: "green" as const },
-    { label: "Risk level", value: out.breakdown.differentiation < 70 ? "Medium" : "Low", trend: "down" as const, tone: "red" as const },
-    { label: "Execution time", value: "48 hours", trend: "up" as const, tone: "green" as const },
+    { label: "Risk level", value: breakdown.differentiation < 70 ? "Medium" : "Low", trend: "down" as const, tone: "red" as const },
+    { label: "Execution readiness", value: `${breakdown.execution}%`, trend: "up" as const, tone: "green" as const },
   ];
 
   return (
@@ -97,7 +112,7 @@ function StatisticsPage() {
         <div className="rounded-2xl border p-5" style={{ background: "#111", borderColor: "#2A2A2A" }}>
           <h3 className="mb-4 font-display text-sm font-semibold">Launch readiness breakdown</h3>
           <div className="space-y-3">
-            {Object.entries(out.breakdown).map(([k, v], i) => (
+            {Object.entries(breakdown).filter(([k]) => k !== "overall").map(([k, v], i) => (
               <Bar key={k} label={labelFor(k)} value={v as number} delay={i * 0.08} />
             ))}
           </div>
@@ -115,14 +130,8 @@ function StatisticsPage() {
         <div className="rounded-2xl border p-5" style={{ background: "#111", borderColor: "#2A2A2A" }}>
           <h3 className="mb-4 font-display text-sm font-semibold">Effort estimate</h3>
           <div className="space-y-3">
-            {[
-              ["Build effort", 55],
-              ["Design effort", 40],
-              ["Marketing effort", 70],
-              ["Maintenance", 30],
-              ["Launch prep", 50],
-            ].map(([l, v], i) => (
-              <Bar key={l as string} label={l as string} value={v as number} delay={i * 0.08} tone="muted" suffix="%" />
+            {effortBars.map(({ label, value }, i) => (
+              <Bar key={label} label={label} value={value} delay={i * 0.08} tone="muted" suffix="%" />
             ))}
           </div>
         </div>
@@ -131,31 +140,19 @@ function StatisticsPage() {
         <div className="rounded-2xl border p-5" style={{ background: "#111", borderColor: "#2A2A2A" }}>
           <h3 className="mb-4 font-display text-sm font-semibold">Risk breakdown</h3>
           <div className="space-y-3">
-            {[
-              ["Market risk", 55],
-              ["Build risk", 35],
-              ["Competition risk", 70],
-              ["Monetization risk", 45],
-              ["Distribution risk", 60],
-            ].map(([l, v], i) => (
-              <Bar key={l as string} label={l as string} value={v as number} delay={i * 0.08} tone="red" />
+            {riskBars.map(({ label, value }, i) => (
+              <Bar key={label} label={label} value={value} delay={i * 0.08} tone="red" />
             ))}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
         {/* Assumptions */}
         <div className="rounded-2xl border p-5" style={{ background: "#111", borderColor: "#2A2A2A" }}>
           <h3 className="mb-4 font-display text-sm font-semibold">Assumptions</h3>
           <ul className="space-y-2 text-xs">
-            {[
-              ["Expected user adoption", "Steady, channel-driven"],
-              ["Build complexity", "Medium (solo-friendly)"],
-              ["Distribution difficulty", persona.channels[0].name],
-              ["User retention risk", out.breakdown.differentiation < 70 ? "Medium" : "Low"],
-              ["Solo builder timeline", "48 hours MVP"],
-            ].map(([l, v]) => (
+            {assumptions.map(([l, v]) => (
               <li key={l} className="flex justify-between border-b pb-2 last:border-0" style={{ borderColor: "#2A2A2A" }}>
                 <span className="text-muted-foreground">{l}</span>
                 <span className="font-semibold">{v}</span>
@@ -176,11 +173,40 @@ function StatisticsPage() {
             <h3 className="font-display text-sm font-semibold">Critic risk analysis</h3>
           </div>
           <ul className="space-y-3 text-xs">
-            <Risk label="Weakest assumption" value={out.critic.weakest} />
-            <Risk label="What may fail first" value={out.critic.fail} />
-            <Risk label="What to test before building" value={`Run a 7-day landing test with ${persona.channels[0].name}.`} />
-            <Risk label="How to reduce risk" value={out.critic.fix} />
+            <Risk label="Primary audience" value={getTargetAudience(project)} />
+            <Risk label="Main failure mode" value={report?.outputs.critic.main_failure_mode ?? "Run the simulation to unlock critic analysis."} />
+            <Risk label="What to test before building" value={report?.outputs.marketing.next_step ?? "Validate the sharpest channel first."} />
+            <Risk label="How to reduce risk" value={report?.outputs.critic.fix_first?.[0] ?? "Narrow the first wedge and test it quickly."} />
           </ul>
+        </div>
+
+        <div className="rounded-2xl border p-5" style={{ background: "#111", borderColor: "#2A2A2A" }}>
+          <div className="mb-3 flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            <h3 className="font-display text-sm font-semibold">Research evidence</h3>
+          </div>
+          <div className="space-y-3 text-xs">
+            <Risk label="Target user" value={report?.research.target_user ?? getTargetAudience(project)} />
+            <Risk label="Competitor set" value={competitors.join(", ")} />
+            <Risk label="Research summary" value={report?.research.summary ?? growth.summary} />
+          </div>
+          {sources.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {sources.slice(0, 4).map((source) => (
+                <a
+                  key={source.url || source.title}
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded-xl border p-3 text-xs transition-colors hover:border-[rgba(255,45,45,0.45)]"
+                  style={{ background: "#0c0c0e", borderColor: "#2A2A2A" }}
+                >
+                  <div className="font-semibold text-foreground">{source.title}</div>
+                  <div className="mt-1 text-muted-foreground">{source.note}</div>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>

@@ -27,8 +27,8 @@ export function DemoPreview() {
 
       <motion.div
         ref={ref}
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={inView ? { opacity: 1, scale: 1 } : {}}
+        initial={false}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="mx-auto mt-12 max-w-6xl rounded-3xl border border-border p-6 sm:p-8"
         style={{
@@ -59,8 +59,8 @@ export function DemoPreview() {
               {TIMELINE.map((s, i) => (
                 <motion.li
                   key={s.label}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  initial={false}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + i * 0.18 }}
                   className="flex items-center gap-3"
                 >
@@ -98,8 +98,8 @@ export function DemoPreview() {
               ].map(([k, v], i) => (
                 <motion.li
                   key={k}
-                  initial={{ opacity: 0, x: 16 }}
-                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  initial={false}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 + i * 0.15 }}
                   className="flex items-center justify-between rounded-lg border border-border bg-[#0a0a0a] px-3 py-2"
                 >
@@ -108,8 +108,8 @@ export function DemoPreview() {
                 </motion.li>
               ))}
               <motion.li
-                initial={{ opacity: 0, x: 16 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
+                initial={false}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1 }}
                 className="mt-2 flex items-center justify-between rounded-lg border px-3 py-3"
                 style={{

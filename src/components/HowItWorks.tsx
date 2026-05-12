@@ -52,8 +52,8 @@ export function HowItWorks() {
       <div ref={ref} className="relative mt-16">
         <div className="absolute left-4 top-12 hidden h-px w-[calc(100%-2rem)] bg-border lg:block" />
         <motion.div
-          initial={{ scaleX: 0 }}
-          animate={inView ? { scaleX: 1 } : {}}
+          initial={false}
+          animate={{ scaleX: 1 }}
           transition={{ duration: 1.4, ease: "easeInOut" }}
           className="absolute left-4 top-12 hidden h-px w-[calc(100%-2rem)] origin-left lg:block"
           style={{ background: "#FF2D2D" }}
@@ -63,8 +63,8 @@ export function HowItWorks() {
           {steps.map(({ n, Icon, title, desc }, i) => (
             <motion.div
               key={n}
-              initial={{ opacity: 0, y: 24 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.15 }}
               className="relative rounded-2xl border border-border p-6"
               style={{ background: "#111111" }}
